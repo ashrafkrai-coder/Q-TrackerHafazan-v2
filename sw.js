@@ -1,7 +1,7 @@
 // Q-Tracker Hafazan NFC — Service Worker
 // Naikkan nombor versi ini setiap kali index.html dikemaskini supaya
 // pengguna dapat versi terbaru dan bukan versi cache lama.
-const CACHE_VERSION = 'qtracker-v4';
+const CACHE_VERSION = 'qtracker-v5';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -35,6 +35,9 @@ self.addEventListener('activate', (event) => {
 
 // ── FETCH: strategi berbeza ikut jenis permintaan ──
 self.addEventListener('fetch', (event) => {
+  // Cache API hanya menyokong permintaan GET. Permintaan lain perlu terus ke rangkaian.
+  if (event.request.method !== 'GET') return;
+
   const url = new URL(event.request.url);
 
   // Jangan campur tangan permintaan ke Supabase — sentiasa perlu data terkini/live.
