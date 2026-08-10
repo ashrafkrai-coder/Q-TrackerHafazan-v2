@@ -36,14 +36,14 @@
       position: sticky; top: 0; z-index: 100;
     }
     .header-eyebrow {
-      font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+      font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
       color: var(--gold-light); font-weight: 600; margin-bottom: 2px;
     }
     .header-title {
-      font-size: clamp(20px, 6vw, 26px); font-weight: 700; color: var(--white);
+      font-size: clamp(21px, 6.4vw, 27px); font-weight: 700; color: var(--white);
       letter-spacing: -.4px; display: flex; align-items: center; gap: 10px;
     }
-    .header-title span { font-size: 22px; }
+    .header-title span { font-size: 23px; }
     .scroll-body {
       flex: 1; padding: 16px 14px calc(env(safe-area-inset-bottom,24px) + 24px);
       display: flex; flex-direction: column; gap: 14px;
@@ -53,7 +53,7 @@
       box-shadow: var(--shadow); overflow: hidden;
     }
     .card-header {
-      background: var(--grey-100); padding: 10px 16px; font-size: 11px; font-weight: 700;
+      background: var(--grey-100); padding: 11px 16px; font-size: 12.5px; font-weight: 700;
       letter-spacing: .06em; text-transform: uppercase; color: var(--grey-600);
       border-bottom: 1px solid var(--grey-200);
     }
@@ -63,16 +63,16 @@
     }
     .select-row:last-child { border-bottom: none; }
     .select-label {
-      font-size: 14px; font-weight: 500; color: var(--grey-900); flex: 0 0 100px;
+      font-size: 15px; font-weight: 500; color: var(--grey-900); flex: 0 0 100px;
     }
     .select-wrap { flex: 1; position: relative; }
     .select-wrap select {
       width: 100%; border: none; outline: none; background: transparent;
-      font-size: 12px; color: var(--emerald); font-weight: 600; font-family: inherit;
-      padding: 12px 28px 12px 0; appearance: none; -webkit-appearance: none;
+      font-size: 13.5px; color: var(--emerald); font-weight: 600; font-family: inherit;
+      padding: 13px 28px 13px 0; appearance: none; -webkit-appearance: none;
       cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
-    .select-wrap select option { font-size: 10px; }
+    .select-wrap select option { font-size: 11px; }
     .select-wrap::after {
       content: '›'; position: absolute; right: 0; top: 50%;
       transform: translateY(-50%) rotate(90deg); color: var(--grey-400);
@@ -82,26 +82,26 @@
 
     /* Info banner for unregistered student */
     .info-banner {
-      margin: 0 16px 12px; padding: 10px 14px; border-radius: 10px;
+      margin: 0 16px 12px; padding: 11px 14px; border-radius: 10px;
       background: #FFF6E0; border: 1px solid var(--gold);
-      font-size: 12px; color: #8A6200; font-weight: 500; line-height: 1.5;
+      font-size: 13px; color: #8A6200; font-weight: 500; line-height: 1.6;
       display: none;
     }
     .info-banner.show { display: block; }
 
     @media (max-width: 480px) {
-      .select-wrap select { font-size: 10px !important; padding: 6px 28px 6px 0 !important; }
-      .select-wrap select option { font-size: 9px !important; }
-      .select-label { font-size: 11px !important; flex: 0 0 80px !important; }
-      .select-row { min-height: 36px !important; padding: 0 12px !important; }
+      .select-wrap select { font-size: 11.5px !important; padding: 7px 28px 7px 0 !important; }
+      .select-wrap select option { font-size: 10px !important; }
+      .select-label { font-size: 13px !important; flex: 0 0 80px !important; }
+      .select-row { min-height: 38px !important; padding: 0 12px !important; }
     }
 
     .status-card .card-body { padding: 14px 16px; }
     .status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
     .pill {
       flex: 1; min-width: 80px; border: 1.5px solid var(--grey-200);
-      border-radius: var(--radius-pill); padding: 10px 6px; text-align: center;
-      font-size: 13px; font-weight: 600; color: var(--grey-600);
+      border-radius: var(--radius-pill); padding: 11px 6px; text-align: center;
+      font-size: 15px; font-weight: 600; color: var(--grey-600);
       cursor: pointer; transition: all .18s ease; background: var(--white);
     }
     .pill.active-lancar { background: #E8F8ED; border-color: var(--green); color: #1B7A3A; }
@@ -130,35 +130,35 @@
       0% { opacity: .5; transform: scale(1); }
       100% { opacity: 0; transform: scale(1.9); }
     }
-    .nfc-label { font-size: 16px; font-weight: 600; color: var(--grey-900); margin-bottom: 4px; }
-    .nfc-sub { font-size: 13px; color: var(--grey-400); }
+    .nfc-label { font-size: 17px; font-weight: 600; color: var(--grey-900); margin-bottom: 4px; }
+    .nfc-sub { font-size: 14px; color: var(--grey-400); }
 
     .btn-hantar {
       width: 100%; background: var(--emerald); color: var(--white);
-      font-size: 16px; font-weight: 700; border: none; border-radius: var(--radius-pill);
-      padding: 17px; cursor: pointer; letter-spacing: .02em;
+      font-size: 17px; font-weight: 700; border: none; border-radius: var(--radius-pill);
+      padding: 18px; cursor: pointer; letter-spacing: .02em;
       transition: opacity .15s, transform .1s; margin-top: 4px; font-family: inherit;
     }
     .btn-hantar:active { opacity: .85; transform: scale(.98); }
     .btn-hantar:disabled { opacity: .38; cursor: not-allowed; }
 
     .last-card .card-body { padding: 16px; }
-    .last-empty { text-align: center; padding: 24px 0; color: var(--grey-400); font-size: 14px; }
+    .last-empty { text-align: center; padding: 24px 0; color: var(--grey-400); font-size: 15px; }
     .last-row {
-      display: flex; align-items: center; gap: 12px; padding: 10px 0;
+      display: flex; align-items: center; gap: 12px; padding: 11px 0;
       border-bottom: 1px solid var(--grey-200);
     }
     .last-row:last-child { border-bottom: none; }
     .last-avatar {
-      width: 40px; height: 40px; border-radius: 50%; background: var(--emerald);
+      width: 42px; height: 42px; border-radius: 50%; background: var(--emerald);
       color: var(--white); display: flex; align-items: center; justify-content: center;
-      font-size: 16px; font-weight: 700; flex-shrink: 0;
+      font-size: 17px; font-weight: 700; flex-shrink: 0;
     }
     .last-info { flex: 1; min-width: 0; }
-    .last-name { font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .last-meta { font-size: 11px; color: var(--grey-600); margin-top: 1px; }
+    .last-name { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .last-meta { font-size: 13px; color: var(--grey-600); margin-top: 2px; }
     .badge {
-      font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: 700; padding: 4px 11px; border-radius: 20px;
       text-transform: uppercase; letter-spacing: .05em; white-space: nowrap;
     }
     .badge-lancar { background: #E8F8ED; color: #1B7A3A; }
@@ -168,8 +168,8 @@
     .toast {
       position: fixed; bottom: calc(env(safe-area-inset-bottom,24px) + 16px);
       left: 50%; transform: translateX(-50%) translateY(80px);
-      background: var(--grey-900); color: var(--white); padding: 12px 22px;
-      border-radius: 20px; font-size: 14px; font-weight: 500;
+      background: var(--grey-900); color: var(--white); padding: 13px 23px;
+      border-radius: 20px; font-size: 15px; font-weight: 500;
       transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .3s;
       opacity: 0; z-index: 999; white-space: nowrap; box-shadow: var(--shadow-lg);
     }
@@ -189,33 +189,33 @@
     }
     .overlay.show .sheet { transform: translateY(0); }
     .sheet-handle { width: 36px; height: 4px; border-radius: 2px; background: var(--grey-200); margin: 0 auto 18px; }
-    .sheet h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; }
+    .sheet h2 { font-size: 19px; font-weight: 700; margin-bottom: 16px; }
     .field label {
-      font-size: 12px; font-weight: 600; color: var(--grey-600);
+      font-size: 13.5px; font-weight: 600; color: var(--grey-600);
       text-transform: uppercase; letter-spacing: .06em; display: block; margin-bottom: 6px;
     }
     .field input, .field select {
       width: 100%; border: 1.5px solid var(--grey-200); border-radius: 12px;
-      padding: 13px 14px; font-size: 16px; font-family: inherit; outline: none;
+      padding: 14px 14px; font-size: 17px; font-family: inherit; outline: none;
       transition: border-color .15s; margin-bottom: 14px; background: var(--white);
     }
     .field input:focus, .field select:focus { border-color: var(--emerald); }
 
     .btn-save {
       width: 100%; background: var(--emerald); color: var(--white); border: none;
-      border-radius: var(--radius-pill); padding: 15px; font-size: 15px;
+      border-radius: var(--radius-pill); padding: 16px; font-size: 16px;
       font-weight: 700; font-family: inherit; cursor: pointer; margin-top: 4px;
     }
     .btn-save:disabled { opacity: .4; cursor: not-allowed; }
     .header-right { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); }
     .btn-link {
       display: block; width: 100%; background: var(--grey-100); color: var(--emerald);
-      border: 1px solid var(--grey-200); border-radius: var(--radius-pill);
-      padding: 12px; font-size: 14px; font-weight: 600; font-family: inherit; cursor: pointer;
+      border: 1px solid var(--grey-200);       border-radius: var(--radius-pill);
+      padding: 13px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
       text-align: center;
     }
     .btn-link:active { opacity: .8; }
-    .nfc-hint { font-size: 12px; color: var(--grey-600); margin-top: 8px; font-weight: 600; }
+    .nfc-hint { font-size: 13.5px; color: var(--grey-600); margin-top: 8px; font-weight: 600; }
     .nfc-hint.ok { color: #1B7A3A; }
     .nfc-hint.warn { color: #C0271F; }
 
@@ -224,11 +224,11 @@
       margin: 0 14px;
       background: #FFEEED; border: 1.5px solid var(--red);
       border-radius: 14px; padding: 14px 16px;
-      font-size: 13px; color: #C0271F; font-weight: 500;
+      font-size: 14px; color: #C0271F; font-weight: 500;
       display: none; text-align: center; line-height: 1.6;
     }
     .reg-prompt.show { display: block; }
-    .reg-prompt strong { display: block; font-size: 15px; margin-bottom: 4px; }
+    .reg-prompt strong { display: block; font-size: 16px; margin-bottom: 4px; }
 
     /* ── Login screen ── */
     #login-screen {
@@ -241,24 +241,24 @@
       margin: 0 auto 18px;
     }
     #login-screen h1 {
-      text-align: center; font-size: 20px; font-weight: 700; margin-bottom: 4px;
+      text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 4px;
     }
     #login-screen p.login-sub {
-      text-align: center; font-size: 13px; color: var(--grey-600); margin-bottom: 28px;
+      text-align: center; font-size: 14px; color: var(--grey-600); margin-bottom: 28px;
     }
     #login-error {
       display: none; background: #FFEEED; border: 1px solid var(--red); color: #C0271F;
-      font-size: 12.5px; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; line-height: 1.5;
+      font-size: 13.5px; padding: 11px 14px; border-radius: 10px; margin-bottom: 14px; line-height: 1.6;
     }
     #login-error.show { display: block; }
     .btn-logout {
       background: rgba(255,255,255,.15); border: none; border-radius: var(--radius-pill);
-      color: var(--white); font-size: 11px; font-weight: 700; padding: 7px 12px;
+      color: var(--white); font-size: 12.5px; font-weight: 700; padding: 8px 13px;
       cursor: pointer; font-family: inherit;
     }
     .guru-badge {
-      font-size: 10.5px; color: var(--grey-900); font-weight: 600; margin-top: 2px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;
+      font-size: 12.5px; color: var(--grey-900); font-weight: 600; margin-top: 2px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
     }
     .conn-dot {
       width: 10px; height: 10px; border-radius: 50%; display: inline-block;
@@ -288,7 +288,7 @@
     <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" />
   </div>
   <button class="btn-save" id="login-btn" onclick="doLogin()">Log Masuk</button>
-  <p style="text-align:center; font-size:11.5px; color:var(--grey-400); margin-top:16px; line-height:1.6;">
+  <p style="text-align:center; font-size:13px; color:var(--grey-400); margin-top:16px; line-height:1.6;">
     Akaun guru dicipta oleh pentadbir sistem melalui Supabase.<br/>Hubungi pentadbir jika belum ada akaun.
   </p>
 </div>
@@ -451,7 +451,7 @@
         <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
       </svg>
     </div>
-    <p style="text-align:center; font-size:12px; color:var(--grey-600); margin-bottom:16px;">Tap ikon di atas untuk scan UID kad NFC murid</p>
+    <p style="text-align:center; font-size:13.5px; color:var(--grey-600); margin-bottom:16px;">Tap ikon di atas untuk scan UID kad NFC murid</p>
     <button class="btn-save" id="reg-save-btn" onclick="saveRegister()">💾 Simpan ke Supabase</button>
   </div>
 </div>
@@ -1272,6 +1272,89 @@ document.getElementById('login-password').addEventListener('keydown', (e) => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// ── SQL untuk dijalankan di Supabase SQL Editor ──
+// Jadual & RPC untuk hafazan_records (gantikan nama jadual jika perlu)
+const SUPABASE_SETUP_SQL = `
+-- 1. Create table "hafazan_records"
+create table if not exists hafazan_records (
+  id bigint generated by default as identity primary key,
+  nama_murid text not null,
+  kelas text,
+  tingkatan text not null,
+  surah text not null,
+  last_ayat text,
+  nfc_id text unique,
+  peratus numeric default 0,
+  bintang integer default 0,
+  lulus_block integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- 2. Enable realtime (optional; ignore error if already added)
+-- alter publication supabase_realtime add table hafazan_records;
+
+-- 3. RPC: register_student
+create or replace function register_student(p_nama text, p_tingkatan text, p_surah text, p_kelas text, p_nfc_id text)
+returns table (id bigint, nama_murid text, kelas text, tingkatan text, surah text, nfc_id text, peratus numeric, bintang integer, lulus_block integer)
+language plpgsql security definer as $$
+begin
+  return query insert into hafazan_records (nama_murid, kelas, tingkatan, surah, nfc_id)
+    values (p_nama, p_kelas, p_tingkatan, p_surah, p_nfc_id)
+  returning hafazan_records.id, hafazan_records.nama_murid, hafazan_records.kelas, hafazan_records.tingkatan, hafazan_records.surah, hafazan_records.nfc_id, hafazan_records.peratus, hafazan_records.bintang, hafazan_records.lulus_block;
+end;
+$$;
+
+-- 4. RPC: submit_hafazan_record
+create or replace function submit_hafazan_record(
+  p_murid_id bigint, p_last_ayat text, p_nfc_id text, p_status text,
+  p_block integer, p_total_blocks integer, p_tingkatan text, p_surah text
+) returns table (id bigint, nama_murid text, kelas text, tingkatan text, surah text, last_ayat text, nfc_id text, peratus numeric, bintang integer, lulus_block integer)
+language plpgsql security definer as $$
+begin
+  if not exists (select 1 from hafazan_records where hafazan_records.id = p_murid_id and (nfc_id = p_nfc_id or p_nfc_id is null)) then
+    raise exception 'UID kad tidak sepadan dengan murid';
+  end if;
+  if p_block > (select lulus_block from hafazan_records where hafazan_records.id = p_murid_id) + 1 then
+    raise exception 'Blok seterusnya belum selesai';
+  end if;
+  update hafazan_records set last_ayat = p_last_ayat, lulus_block = greatest(hafazan_records.lulus_block, p_block),
+    bintang = bintang + case when p_status = 'lancar' then 1 else 0 end,
+    peratus = round((greatest(hafazan_records.lulus_block, p_block)::numeric / p_total_blocks::numeric) * 100, 0)
+  where hafazan_records.id = p_murid_id;
+  return query select hafazan_records.id, hafazan_records.nama_murid, hafazan_records.kelas, hafazan_records.tingkatan, hafazan_records.surah, hafazan_records.last_ayat, hafazan_records.nfc_id, hafazan_records.peratus, hafazan_records.bintang, hafazan_records.lulus_block
+  from hafazan_records where hafazan_records.id = p_murid_id;
+end;
+$$;
+
+-- 5. RPC: link_student_card
+create or replace function link_student_card(p_murid_id bigint, p_nfc_id text)
+returns void language plpgsql security definer as $$
+begin
+  update hafazan_records set nfc_id = p_nfc_id where hafazan_records.id = p_murid_id;
+end;
+$$;
+
+-- 6. RLS: benarkan akses untuk role authenticated / anon (sesuaikan ikut keperluan)
+alter table hafazan_records enable row level security;
+
+drop policy if exists "allow_all_authenticated" on hafazan_records;
+create policy "allow_all_authenticated" on hafazan_records
+  for all to authenticated using (true) with check (true);
+
+-- Jika mahu akses anon (tanpa login), buka komen baris di bawah:
+-- drop policy if exists "allow_all_anon" on hafazan_records;
+-- create policy "allow_all_anon" on hafazan_records
+--   for all to anon using (true) with check (true);
+
+grant usage on schema public to authenticated, anon;
+grant all on hafazan_records to authenticated, anon;
+grant execute on function register_student(text, text, text, text, text) to authenticated, anon;
+grant execute on function submit_hafazan_record(bigint, text, text, text, integer, integer, text, text) to authenticated, anon;
+grant execute on function link_student_card(bigint, text) to authenticated, anon;
+`;
+
+console.log('SQL setup untuk Supabase:', SUPABASE_SETUP_SQL);
 </script>
 </body>
 </html>
