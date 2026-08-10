@@ -265,6 +265,16 @@
       color: var(--white); font-size: 11px; font-weight: 700; padding: 6px 11px;
       cursor: pointer; font-family: inherit; white-space: nowrap;
     }
+    .header-right { display: flex; align-items: center; gap: 7px; }
+    .btn-install {
+      display: inline-flex; align-items: center; gap: 5px; background: var(--gold);
+      border: none; border-radius: var(--radius-pill); color: var(--emerald);
+      font: 700 11px/1 inherit; padding: 7px 11px; cursor: pointer; white-space: nowrap;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+    .btn-install:hover { background: var(--gold-light); }
+    .btn-install:active { transform: scale(.96); }
+    .btn-install svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.3; fill: none; }
     .guru-badge {
       font-size: 10.5px; color: rgba(255,255,255,.65); font-weight: 400; margin-top: 8px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex;
@@ -310,6 +320,10 @@
   <div class="header-top">
     <div class="header-title"><span>📖</span> Q-Tracker Hafazan</div>
     <div class="header-right">
+      <button id="install-app-btn" class="btn-install" type="button" hidden onclick="installApp()" aria-label="Pasang aplikasi Q-Tracker">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
+        <span>Install</span>
+      </button>
       <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
     </div>
   </div>
@@ -1280,6 +1294,41 @@ if (supabaseClient) {
 document.getElementById('login-password').addEventListener('keydown', (e) => {
   if (e.key === 'Enter') doLogin();
 });
+
+// Butang pemasangan hanya dipaparkan apabila pelayar membenarkan PWA dipasang.
+let deferredInstallPrompt = null;
+const installAppButton = document.getElementById('install-app-btn');
+
+function hideInstallButton() {
+  deferredInstallPrompt = null;
+  installAppButton.hidden = true;
+}
+
+window.addEventListener('beforeinstallprompt', (event) => {
+  event.preventDefault();
+  deferredInstallPrompt = event;
+  installAppButton.hidden = false;
+});
+
+window.addEventListener('appinstalled', () => {
+  hideInstallButton();
+  showToast('✅ Q-Tracker berjaya dipasang.');
+});
+
+// Jika aplikasi dibuka daripada ikon pada skrin utama, ia sudah dipasang.
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+  hideInstallButton();
+}
+
+async function installApp() {
+  if (!deferredInstallPrompt) return;
+
+  deferredInstallPrompt.prompt();
+  const { outcome } = await deferredInstallPrompt.userChoice;
+  if (outcome !== 'accepted') showToast('Pemasangan dibatalkan.');
+  // Prompt hanya boleh digunakan sekali; sembunyikan butang selepas pilihan dibuat.
+  hideInstallButton();
+}
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

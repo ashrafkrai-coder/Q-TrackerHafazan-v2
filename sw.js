@@ -1,7 +1,7 @@
 // Q-Tracker Hafazan NFC — Service Worker
 // Naikkan nombor versi ini setiap kali index.html dikemaskini supaya
 // pengguna dapat versi terbaru dan bukan versi cache lama.
-const CACHE_VERSION = 'qtracker-v5';
+const CACHE_VERSION = 'qtracker-v6';
 const CACHE_FILES = [
   './',
   './index.html',
