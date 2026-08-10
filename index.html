@@ -32,18 +32,23 @@
       display: flex; flex-direction: column;
     }
     header {
-      background: var(--emerald); padding: max(env(safe-area-inset-top), 14px) 20px 18px;
+      background: var(--emerald); padding: max(env(safe-area-inset-top), 14px) 20px 16px;
       position: sticky; top: 0; z-index: 100;
     }
     .header-eyebrow {
       font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
       color: var(--gold-light); font-weight: 600; margin-bottom: 2px;
     }
-    .header-title {
-      font-size: clamp(21px, 6.4vw, 27px); font-weight: 700; color: var(--white);
-      letter-spacing: -.4px; display: flex; align-items: center; gap: 10px;
+    .header-top {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
     }
-    .header-title span { font-size: 23px; }
+    .header-title {
+      font-size: clamp(19px, 5.6vw, 25px); font-weight: 700; color: var(--white);
+      letter-spacing: -.4px; display: flex; align-items: center; gap: 10px;
+      min-width: 0; flex: 1;
+    }
+    .header-title span { font-size: 22px; }
     .scroll-body {
       flex: 1; padding: 16px 14px calc(env(safe-area-inset-bottom,24px) + 24px);
       display: flex; flex-direction: column; gap: 14px;
@@ -207,7 +212,6 @@
       font-weight: 700; font-family: inherit; cursor: pointer; margin-top: 4px;
     }
     .btn-save:disabled { opacity: .4; cursor: not-allowed; }
-    .header-right { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); }
     .btn-link {
       display: block; width: 100%; background: var(--grey-100); color: var(--emerald);
       border: 1px solid var(--grey-200);       border-radius: var(--radius-pill);
@@ -254,11 +258,12 @@
     .btn-logout {
       background: rgba(255,255,255,.15); border: none; border-radius: var(--radius-pill);
       color: var(--white); font-size: 12.5px; font-weight: 700; padding: 8px 13px;
-      cursor: pointer; font-family: inherit;
+      cursor: pointer; font-family: inherit; white-space: nowrap;
     }
     .guru-badge {
-      font-size: 12.5px; color: var(--grey-900); font-weight: 600; margin-top: 2px;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 200px;
+      font-size: 10.5px; color: rgba(255,255,255,.65); font-weight: 400; margin-top: 8px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex;
+      align-items: center; max-width: 100%; letter-spacing: .01em;
     }
     .conn-dot {
       width: 10px; height: 10px; border-radius: 50%; display: inline-block;
@@ -295,14 +300,16 @@
 
 <!-- ═══ APP UTAMA (selepas log masuk) ═══ -->
 <div id="app-main" style="display:none; flex-direction:column; flex:1;">
-<header style="position:relative;">
+<header>
   <div class="header-eyebrow">Sistem Pemantauan</div>
-  <div class="header-title"><span>📖</span> Q-Tracker Hafazan</div>
-  <div id="guru-badge" class="guru-badge" style="position:absolute; left:20px; bottom:-14px;">
-    <span id="conn-dot" class="conn-dot"></span><span id="guru-text"></span>
+  <div class="header-top">
+    <div class="header-title"><span>📖</span> Q-Tracker Hafazan</div>
+    <div class="header-right">
+      <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
+    </div>
   </div>
-  <div class="header-right" style="display:flex; align-items:center; gap:8px;">
-    <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
+  <div id="guru-badge" class="guru-badge">
+    <span id="conn-dot" class="conn-dot"></span><span id="guru-text"></span>
   </div>
 </header>
 
