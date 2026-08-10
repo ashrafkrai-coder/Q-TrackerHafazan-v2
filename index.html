@@ -15,7 +15,7 @@
     :root {
       --emerald: #1A3A2E; --emerald-mid: #25503E; --gold: #D4A843; --gold-light: #F0CC78;
       --cream: #F8F5EE; --white: #FFFFFF; --grey-100: #F2F2F7; --grey-200: #E5E5EA;
-      --grey-400: #AEAEB2; --grey-600: #636366; --grey-900: #1C1C1E;
+      --grey-400: #AEAEB2; --grey-600: #636366; --grey-700: #4B4B4E; --grey-900: #1C1C1E;
       --red: #FF3B30; --green: #34C759; --radius-card: 18px; --radius-pill: 100px;
       --shadow: 0 4px 24px rgba(0,0,0,.10); --shadow-lg: 0 12px 40px rgba(0,0,0,.16);
     }
@@ -406,7 +406,7 @@
     </div>
   </div>
 
-  <button class="btn-link" onclick="openRegister()">🪪 Daftar / Semak Kad Murid</button>
+  <button class="btn-link" id="btn-daftar-murid" onclick="openRegisterMenu()">🪪 Daftar / Semak Kad Murid</button>
   <button class="btn-hantar" id="btn-hantar" disabled onclick="hantarRekod()">Hantar Rekod</button>
 
   <!-- ═══ REKOD TERAKHIR ═══ -->
@@ -451,6 +451,12 @@
       <label>Nama Jadual (Table)</label>
       <input id="inp-table" type="text" placeholder="hafazan_records" value="hafazan_records" />
     </div>
+
+    <details class="setup-toggle" style="margin-bottom:14px;">
+      <summary style="font-size:12px; font-weight:600; color:var(--grey-700); cursor:pointer; padding:6px 0;">📋 SQL Setup — jadual &amp; fungsi (klik untuk expand)</summary>
+      <pre class="setup-sql" style="font-size:10.5px; line-height:1.6; background:#1C1C1E; color:#d4d4d4; padding:14px; border-radius:10px; overflow-x:auto; margin-top:10px; white-space:pre-wrap; word-break:break-all;" id="sql-setup-text"></pre>
+    </details>
+
     <button class="btn-save" onclick="saveSettings()">Simpan Tetapan</button>
     <button class="btn-link" style="margin-top:10px;" onclick="resetToDefaultSettings()">↺ Guna Tetapan Asal (Default)</button>
   </div>
@@ -639,10 +645,15 @@ let currentGuru = null;
 async function checkSession() {
   await testConnection();
   if (!supabaseClient) { showLoginScreen(); return; }
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session && session.user) {
-    onAuthed(session.user);
-  } else {
+  try {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (session && session.user) {
+      onAuthed(session.user);
+    } else {
+      showLoginScreen();
+    }
+  } catch (err) {
+    console.error('Session check failed:', err);
     showLoginScreen();
   }
 }
@@ -665,18 +676,19 @@ function onAuthed(user) {
 
 async function testConnection() {
   const dot = document.getElementById('conn-dot');
-  if (!dot) return;
   if (!supabaseClient) {
-    dot.className = 'conn-dot disconnected';
-    return;
+    if (dot) dot.className = 'conn-dot disconnected';
+    return false;
   }
   try {
-    const { error } = await supabaseClient.from(config.table).select('id', { count: true, head: true }).limit(1);
+    // Ping Auth — jangan bergantung pada SELECT jadual
+    // (jadual belum wujud / RLS ketat masih membenarkan login).
+    const { error } = await supabaseClient.auth.getSession();
     if (error) throw error;
-    dot.className = 'conn-dot connected';
+    if (dot) dot.className = 'conn-dot connected';
     return true;
   } catch (err) {
-    dot.className = 'conn-dot disconnected';
+    if (dot) dot.className = 'conn-dot disconnected';
     return false;
   }
 }
@@ -689,7 +701,7 @@ function resetToDefaultSettings() {
   document.getElementById('inp-url').value = config.url;
   document.getElementById('inp-key').value = config.key;
   document.getElementById('inp-table').value = config.table;
-  showToast('↺ Kembali ke Tetapan Asal');
+    showToast('\u21BA Kembali ke Tetapan Asal');
 }
 
 async function doLogin() {
@@ -704,25 +716,35 @@ async function doLogin() {
     errBox.classList.add('show');
     return;
   }
+  if (!window.supabase) {
+    errBox.textContent = 'Pustaka Supabase gagal dimuatkan. Semak sambungan internet / cache PWA.';
+    errBox.classList.add('show');
+    return;
+  }
   if (!supabaseClient) {
-    errBox.textContent = 'Supabase belum dikonfigurasi.';
+    initSupabase();
+  }
+  if (!supabaseClient) {
+    errBox.textContent = 'Supabase belum dikonfigurasi. Buka Tetapan Supabase dahulu.';
     errBox.classList.add('show');
     return;
   }
 
   btn.disabled = true; btn.textContent = 'Mengesahkan…';
   try {
-    const connected = await testConnection();
-    if (!connected) {
-      errBox.textContent = 'Gagal sambung ke Supabase. Semak tetapan URL/Key.';
-      errBox.classList.add('show');
-      return;
-    }
+    // Cuba terus sign-in — jangan blok dengan SELECT jadual
     const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
     onAuthed(data.user);
   } catch (err) {
-    errBox.textContent = 'Log masuk gagal: emel atau kata laluan tidak sah.';
+    const msg = (err && err.message) || '';
+    if (/failed to fetch|network|fetch/i.test(msg)) {
+      errBox.textContent = 'Gagal sambung ke Supabase. Semak URL/Key dalam Tetapan, atau sambungan internet.';
+    } else if (/invalid login|invalid credentials|email/i.test(msg)) {
+      errBox.textContent = 'Emel atau kata laluan tidak sah.';
+    } else {
+      errBox.textContent = msg || 'Log masuk gagal: emel atau kata laluan tidak sah.';
+    }
     errBox.classList.add('show');
   } finally {
     btn.disabled = false; btn.textContent = 'Log Masuk';
@@ -753,10 +775,10 @@ async function loadStudents() {
     studentsData = data || [];
     populateLinkMurid();
     loadLastRecords();
-    if (studentsData.length > 0) showToast('✅ Data murid berjaya dimuatkan');
+    if (studentsData.length > 0) showToast('\u2705 Data murid berjaya dimuatkan');
   } catch (err) {
     console.error(err);
-    showToast('❌ Gagal sambung ke Supabase');
+    showToast('\u274C Gagal sambung ke Supabase');
   }
 }
 
@@ -853,7 +875,7 @@ function setMuridFromNFC(student) {
   // Show hint
   const hint = document.getElementById('nfc-hint');
   const blok = parseInt(student.lulus_block || '0', 10) || 0;
-  hint.textContent = `Kad: ${student.nfc_id} | Bintang: ${blok}⭐ | ${student.peratus || 0}%`;
+  hint.textContent = `Kad: ${student.nfc_id} | Bintang: ${blok}\u2b55 | ${student.peratus || 0}%`;
   hint.className = 'nfc-hint ok';
   hint.style.display = 'block';
   document.getElementById('reg-prompt').classList.remove('show');
@@ -930,7 +952,7 @@ function simulateNFCMain(ring, label, sub) {
 function nfcSuccessMain(ring, label, sub) {
   ring.className = 'nfc-ring success';
   ring.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
-  label.textContent = 'Kad Disahkan ✓';
+  label.textContent = 'Kad Disahkan \u2713';
   sub.textContent = 'UID: ' + nfcUID;
   nfcVerified = true;
   resolveCard();
@@ -1006,10 +1028,10 @@ async function hantarRekod() {
   if (!muridId || !ayat || !statusPilih || !nfcVerified || !ting || !surah) return;
 
   const student = studentsData.find(s => String(s.id) === String(muridId));
-  if (!student) { showToast('❌ Data murid tidak ditemui'); return; }
+  if (!student) { showToast('\u274C Data murid tidak ditemui'); return; }
 
   if (student.nfc_id && student.nfc_id !== nfcUID) {
-    showToast('⚠️ UID kad tidak sepadan dengan ' + student.nama_murid);
+    showToast('\u26A0\uFE0F UID kad tidak sepadan dengan ' + student.nama_murid);
     return;
   }
 
@@ -1038,18 +1060,28 @@ async function hantarRekod() {
 
     // Save to localStorage
     try {
-      const rec = { nama_murid: student.nama_murid, tingkatan: ting, surah: surah, last_ayat: ayat, peratus: newPeratus, bintang: newBintang, status: statusPilih, nfc_uid: nfcUID, tarikh: new Date().toISOString() };
+      const rec = {
+        nama_murid: student.nama_murid,
+        tingkatan: ting,
+        surah: surah,
+        last_ayat: ayat,
+        peratus: updated.peratus || student.peratus || 0,
+        bintang: updated.bintang || student.bintang || 0,
+        status: statusPilih,
+        nfc_uid: nfcUID,
+        tarikh: new Date().toISOString()
+      };
       const arr = JSON.parse(localStorage.getItem('hafazan_records') || '[]');
       arr.unshift(rec);
       localStorage.setItem('hafazan_records', JSON.stringify(arr.slice(0, 50)));
     } catch(e) {}
 
-    showToast(`✅ Rekod berjaya! ${statusPilih === 'lancar' ? '+1 ⭐' : ''}`);
+    showToast(`\u2705 Rekod berjaya! ${statusPilih === 'lancar' ? '+1 \u2b55' : ''}`);
     loadLastRecords();
     resetForm();
   } catch (err) {
     console.error(err);
-    showToast('❌ Gagal: ' + err.message);
+    showToast('\u274C Gagal: ' + err.message);
   } finally {
     btn.disabled = false; btn.textContent = 'Hantar Rekod';
   }
@@ -1135,15 +1167,97 @@ function openSettings() {
   const isDefault = config.url === DEFAULT_CONFIG.url;
   document.getElementById('settings-current').textContent =
     `Sedang guna: ${config.sekolah ? config.sekolah + ' · ' : ''}${config.url || '(tiada)'} ${isDefault ? '(Tetapan Asal)' : '(Tersuai)'}`;
+  document.getElementById('sql-setup-text').textContent = generateSetupSQL(config.table || 'hafazan_records');
   document.getElementById('overlay').classList.add('show');
 }
+
+function generateSetupSQL(tableName) {
+  return `-- 1. Create table "${tableName}"
+create table if not exists ${tableName} (
+  id bigint generated by default as identity primary key,
+  nama_murid text not null,
+  kelas text,
+  tingkatan text not null,
+  surah text not null,
+  last_ayat text,
+  nfc_id text unique,
+  peratus numeric default 0,
+  bintang integer default 0,
+  lulus_block integer default 0,
+  created_at timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- 2. Enable realtime (optional; ignore error if already added)
+-- alter publication supabase_realtime add table ${tableName};
+
+-- 3. RPC: register_student
+create or replace function register_student(p_nama text, p_tingkatan text, p_surah text, p_kelas text, p_nfc_id text)
+returns table (id bigint, nama_murid text, kelas text, tingkatan text, surah text, nfc_id text, peratus numeric, bintang integer, lulus_block integer)
+language plpgsql security definer as $$
+begin
+  return query insert into ${tableName} (nama_murid, kelas, tingkatan, surah, nfc_id)
+    values (p_nama, p_kelas, p_tingkatan, p_surah, p_nfc_id)
+  returning id, nama_murid, kelas, tingkatan, surah, nfc_id, peratus, bintang, lulus_block;
+end;
+$$;
+
+-- 4. RPC: submit_hafazan_record
+create or replace function submit_hafazan_record(
+  p_murid_id bigint, p_last_ayat text, p_nfc_id text, p_status text,
+  p_block integer, p_total_blocks integer, p_tingkatan text, p_surah text
+) returns table (id bigint, nama_murid text, kelas text, tingkatan text, surah text, last_ayat text, nfc_id text, peratus numeric, bintang integer, lulus_block integer)
+language plpgsql security definer as $$
+begin
+  if not exists (select 1 from ${tableName} where id = p_murid_id and (nfc_id = p_nfc_id or p_nfc_id is null)) then
+    raise exception 'UID kad tidak sepadan dengan murid';
+  end if;
+  if p_block > (select lulus_block from ${tableName} where id = p_murid_id) + 1 then
+    raise exception 'Blok seterusnya belum selesai';
+  end if;
+  update ${tableName} set last_ayat = p_last_ayat, lulus_block = greatest(lulus_block, p_block),
+    bintang = bintang + case when p_status = 'lancar' then 1 else 0 end,
+    peratus = round((greatest(lulus_block, p_block)::numeric / p_total_blocks::numeric) * 100, 0)
+  where id = p_murid_id;
+  return query select id, nama_murid, kelas, tingkatan, surah, last_ayat, nfc_id, peratus, bintang, lulus_block
+  from ${tableName} where id = p_murid_id;
+end;
+$$;
+
+-- 5. RPC: link_student_card
+create or replace function link_student_card(p_murid_id bigint, p_nfc_id text)
+returns void language plpgsql security definer as $$
+begin
+  update ${tableName} set nfc_id = p_nfc_id where id = p_murid_id;
+end;
+$$;
+
+-- 6. RLS: benarkan akses untuk role authenticated / anon (sesuaikan ikut keperluan)
+alter table ${tableName} enable row level security;
+
+drop policy if exists "allow_all_authenticated" on ${tableName};
+create policy "allow_all_authenticated" on ${tableName}
+  for all to authenticated using (true) with check (true);
+
+-- Jika mahu akses anon (tanpa login), buka komen baris di bawah:
+-- drop policy if exists "allow_all_anon" on ${tableName};
+-- create policy "allow_all_anon" on ${tableName}
+--   for all to anon using (true) with check (true);
+
+grant usage on schema public to authenticated, anon;
+grant all on ${tableName} to authenticated, anon;
+grant execute on function register_student(text, text, text, text, text) to authenticated, anon;
+grant execute on function submit_hafazan_record(bigint, text, text, text, integer, integer, text, text) to authenticated, anon;
+grant execute on function link_student_card(bigint, text) to authenticated, anon;
+`
+}
+
 function closeSettingsOutside(e) {
   if (e.target === document.getElementById('overlay')) document.getElementById('overlay').classList.remove('show');
 }
-function saveSettings() {
+async function saveSettings() {
   const url = document.getElementById('inp-url').value.trim().replace(/\/$/, '');
   const key = document.getElementById('inp-key').value.trim();
-  if (!url || !key) { showToast('⚠️ Sila isi URL dan Anon Key'); return; }
+  if (!url || !key) { showToast('\u26A0\uFE0F Sila isi URL dan Anon Key'); return; }
   config = {
     sekolah: document.getElementById('inp-sekolah').value.trim(),
     url: url,
@@ -1153,8 +1267,8 @@ function saveSettings() {
   localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
   initSupabase();
   document.getElementById('overlay').classList.remove('show');
-  showToast('✅ Tetapan disimpan. Memuat semula data...');
-  checkSession();
+  showToast('\u2705 Tetapan disimpan. Memuat semula data...');
+  await checkSession();
 }
 
 // ════════════════════════════════════════════
@@ -1210,11 +1324,11 @@ async function saveRegister() {
   const kelas = document.getElementById('reg-kelas').value.trim();
   const uid = document.getElementById('reg-uid').value.trim();
 
-  if (!nama) { showToast('⚠️ Sila masukkan nama murid'); return; }
-  if (!ting) { showToast('⚠️ Sila pilih tingkatan'); return; }
-  if (!surah) { showToast('⚠️ Sila pilih surah'); return; }
-  if (!uid) { showToast('⚠️ Sila scan atau taip UID kad'); return; }
-  if (!supabaseClient) { showToast('❌ Supabase belum dikonfigurasi'); return; }
+  if (!nama) { showToast('\u26A0\uFE0F Sila masukkan nama murid'); return; }
+  if (!ting) { showToast('\u26A0\uFE0F Sila pilih tingkatan'); return; }
+  if (!surah) { showToast('\u26A0\uFE0F Sila pilih surah'); return; }
+  if (!uid) { showToast('\u26A0\uFE0F Sila scan atau taip UID kad'); return; }
+  if (!supabaseClient) { showToast('\u274C Supabase belum dikonfigurasi'); return; }
 
   const btn = document.getElementById('reg-save-btn');
   btn.disabled = true; btn.textContent = 'Menyimpan...';
@@ -1233,13 +1347,13 @@ async function saveRegister() {
     if (created) studentsData.push(created);
     populateLinkMurid();
     document.getElementById('reg-overlay').classList.remove('show');
-    showToast(`✅ Murid ${nama} berjaya didaftarkan!`);
+    showToast(`\u2705 Murid ${nama} berjaya didaftarkan!`);
     loadLastRecords();
   } catch(err) {
     console.error(err);
-    showToast('❌ Gagal daftar: ' + err.message);
+    showToast('\u274C Gagal daftar: ' + err.message);
   } finally {
-    btn.disabled = false; btn.textContent = '💾 Simpan ke Supabase';
+    btn.disabled = false; btn.textContent = '\u{1F4BE} Simpan ke Supabase';
   }
 }
 
@@ -1287,8 +1401,8 @@ async function scanLinkNFC() {
 async function saveLinkCard() {
   const muridId = document.getElementById('link-murid').value;
   const uid = document.getElementById('link-uid').value.trim();
-  if (!muridId) { showToast('⚠️ Sila pilih murid'); return; }
-  if (!uid) { showToast('⚠️ Sila scan atau taip UID kad'); return; }
+  if (!muridId) { showToast('\u26A0\uFE0F Sila pilih murid'); return; }
+  if (!uid) { showToast('\u26A0\uFE0F Sila scan atau taip UID kad'); return; }
 
   const btn = document.querySelector('#link-overlay .btn-save');
   btn.disabled = true; btn.textContent = 'Menyimpan...';
@@ -1305,10 +1419,10 @@ async function saveLinkCard() {
     if (error) throw error;
     student.nfc_id = uid;
     document.getElementById('link-overlay').classList.remove('show');
-    showToast(`✅ Kad berjaya dikaitkan dengan ${student.nama_murid}!`);
+    showToast(`\u2705 Kad berjaya dikaitkan dengan ${student.nama_murid}!`);
   } catch(err) {
     console.error(err);
-    showToast('❌ Gagal: ' + err.message);
+    showToast('\u274C Gagal: ' + err.message);
   } finally {
     btn.disabled = false; btn.textContent = 'Simpan Pemetaan';
   }
@@ -1317,19 +1431,16 @@ async function saveLinkCard() {
 // ════════════════════════════════════════════
 // BUTANG DAFTAR / SEMAK — 2 pilihan
 // ════════════════════════════════════════════
-// Reuse .btn-link onclick to show a choice mini-menu
 function openRegisterMenu() {
-  // Simple: open daftar murid baru directly, link card separately
-  openRegister();
-}
-
-// Override the single btn-link to open register
-document.querySelector('.btn-link').onclick = function() {
-  // Show both options via prompt (simple approach)
-  const choice = confirm('Daftar MURID BAHARU?\n\n✅ OK  → Daftar murid baharu (isi nama, tingkatan, surah, kad)\n❌ Batal → Kaitkan kad ke murid SEDIA ADA');
+  const choice = confirm('Daftar MURID BAHARU?\n\n\u2705 OK  \u2192 Daftar murid baharu (isi nama, tingkatan, surah, kad)\n\u274C Batal \u2192 Kaitkan kad ke murid SEDIA ADA');
   if (choice) openRegister();
   else openLinkOverlay();
-};
+}
+
+// Ikat hanya butang "Daftar / Semak Kad Murid" dalam app-main —
+// JANGAN guna querySelector('.btn-link') kerana ia akan timpa
+// butang "Tetapan Supabase" pada skrin login.
+// onclick pada #btn-daftar-murid sudah diikat ke openRegisterMenu() di HTML.
 
 // ════════════════════════════════════════════
 // INIT

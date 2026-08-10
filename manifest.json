@@ -2,8 +2,8 @@
   "name": "Q-Tracker Hafazan NFC",
   "short_name": "Q-Tracker",
   "description": "Sistem Pemantauan Hafazan Murid dengan Pengesahan Kad NFC",
-  "start_url": "./index.html",
-  "scope": "./",
+  "start_url": "index.html",
+  "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#E3DFD5",
@@ -24,7 +24,7 @@
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512-maskable.png",
+      "src": "icons/icon-512 maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
