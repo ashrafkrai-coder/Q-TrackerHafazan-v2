@@ -44,11 +44,11 @@
       gap: 12px; flex-wrap: wrap;
     }
     .header-title {
-      font-size: clamp(19px, 5.6vw, 25px); font-weight: 700; color: var(--white);
-      letter-spacing: -.4px; display: flex; align-items: center; gap: 10px;
+      font-size: clamp(16px, 4.6vw, 20px); font-weight: 700; color: var(--white);
+      letter-spacing: -.3px; display: flex; align-items: center; gap: 8px;
       min-width: 0; flex: 1;
     }
-    .header-title span { font-size: 22px; }
+    .header-title span { font-size: 18px; }
     .scroll-body {
       flex: 1; padding: 16px 14px calc(env(safe-area-inset-bottom,24px) + 24px);
       display: flex; flex-direction: column; gap: 14px;
@@ -104,11 +104,14 @@
     .status-card .card-body { padding: 14px 16px; }
     .status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
     .pill {
-      flex: 1; min-width: 80px; border: 1.5px solid var(--grey-200);
-      border-radius: var(--radius-pill); padding: 11px 6px; text-align: center;
-      font-size: 15px; font-weight: 600; color: var(--grey-600);
+      flex: 1; min-width: 80px; aspect-ratio: 1 / 1; border: 1.5px solid var(--grey-200);
+      border-radius: 50%; padding: 6px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; font-size: 13px; font-weight: 600; color: var(--grey-600); line-height: 1.2;
       cursor: pointer; transition: all .18s ease; background: var(--white);
     }
+    .pill-ico { font-size: 22px; line-height: 1; }
+    .pill-txt { font-size: 12px; }
     .pill.active-lancar { background: #E8F8ED; border-color: var(--green); color: #1B7A3A; }
     .pill.active-ulang { background: #FFF6E0; border-color: var(--gold); color: #8A6200; }
     .pill.active-bimbingan { background: #FFEEED; border-color: var(--red); color: #C0271F; }
@@ -257,7 +260,7 @@
     #login-error.show { display: block; }
     .btn-logout {
       background: rgba(255,255,255,.15); border: none; border-radius: var(--radius-pill);
-      color: var(--white); font-size: 12.5px; font-weight: 700; padding: 8px 13px;
+      color: var(--white); font-size: 11px; font-weight: 700; padding: 6px 11px;
       cursor: pointer; font-family: inherit; white-space: nowrap;
     }
     .guru-badge {
@@ -376,9 +379,9 @@
     <div class="card-header">Status Bacaan</div>
     <div class="card-body">
       <div class="status-pills">
-        <div class="pill" data-val="lancar" onclick="pilihStatus(this)">✅ Lancar</div>
-        <div class="pill" data-val="ulang" onclick="pilihStatus(this)">🔄 Ulang</div>
-        <div class="pill" data-val="bimbingan" onclick="pilihStatus(this)">📌 Bimbingan</div>
+        <div class="pill" data-val="lancar" onclick="pilihStatus(this)"><span class="pill-ico">✅</span><span class="pill-txt">Lancar</span></div>
+        <div class="pill" data-val="ulang" onclick="pilihStatus(this)"><span class="pill-ico">🔄</span><span class="pill-txt">Ulang</span></div>
+        <div class="pill" data-val="bimbingan" onclick="pilihStatus(this)"><span class="pill-ico">📌</span><span class="pill-txt">Bimbingan</span></div>
       </div>
     </div>
   </div>
