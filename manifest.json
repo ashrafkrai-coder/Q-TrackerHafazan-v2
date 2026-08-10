@@ -3,8 +3,8 @@
   "short_name": "Q-Tracker",
   "description": "Sistem Pemantauan Hafazan Murid dengan Pengesahan Kad NFC",
   "id": "/qtracker-hafazan/",
-  "start_url": "./",
-  "scope": "./",
+  "start_url": "/qtracker-hafazan/",
+  "scope": "/qtracker-hafazan/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#E3DFD5",
@@ -13,25 +13,25 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "icons/icon-192.png",
+      "src": "/qtracker-hafazan/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "/qtracker-hafazan/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/icon-192.png",
+      "src": "/qtracker-hafazan/icons/icon-192-maskable.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "icons/icon-512-maskable.png",
+      "src": "/qtracker-hafazan/icons/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
