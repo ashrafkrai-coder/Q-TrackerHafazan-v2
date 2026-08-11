@@ -274,6 +274,7 @@
     }
     .btn-install:hover { background: var(--gold-light); }
     .btn-install:active { transform: scale(.96); }
+    .btn-install:disabled { opacity: .65; cursor: wait; }
     .btn-install svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.3; fill: none; }
     .guru-badge {
       font-size: 10.5px; color: rgba(255,255,255,.65); font-weight: 400; margin-top: 8px;
@@ -320,7 +321,7 @@
   <div class="header-top">
     <div class="header-title"><span>📖</span> Q-Tracker Hafazan</div>
     <div class="header-right">
-      <button id="install-app-btn" class="btn-install" type="button" hidden onclick="installApp()" aria-label="Pasang aplikasi Q-Tracker">
+      <button id="install-app-btn" class="btn-install" type="button" onclick="installApp()" aria-label="Pasang aplikasi Q-Tracker">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
         <span>Install</span>
       </button>
@@ -1321,13 +1322,32 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
 }
 
 async function installApp() {
-  if (!deferredInstallPrompt) return;
+  if (!deferredInstallPrompt) {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      showToast('Untuk iPhone/iPad: tekan Kongsi, kemudian pilih “Add to Home Screen”.');
+    } else if (!window.isSecureContext) {
+      showToast('Pemasangan memerlukan laman HTTPS atau localhost.');
+    } else {
+      showToast('Pemasangan belum sedia. Guna menu pelayar → “Install app” atau muat semula halaman.');
+    }
+    return;
+  }
 
-  deferredInstallPrompt.prompt();
-  const { outcome } = await deferredInstallPrompt.userChoice;
-  if (outcome !== 'accepted') showToast('Pemasangan dibatalkan.');
-  // Prompt hanya boleh digunakan sekali; sembunyikan butang selepas pilihan dibuat.
-  hideInstallButton();
+  const installPrompt = deferredInstallPrompt;
+  installAppButton.disabled = true;
+  try {
+    await installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome !== 'accepted') showToast('Pemasangan dibatalkan.');
+    // Prompt hanya boleh digunakan sekali; sembunyikan butang selepas pilihan dibuat.
+    hideInstallButton();
+  } catch (error) {
+    console.error('Prompt pemasangan gagal:', error);
+    showToast('Pemasangan gagal dibuka. Sila cuba melalui menu pelayar.');
+  } finally {
+    installAppButton.disabled = false;
+  }
 }
 
 if ('serviceWorker' in navigator) {
