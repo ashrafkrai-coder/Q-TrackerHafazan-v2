@@ -288,6 +288,51 @@
     }
     .conn-dot.connected { background: var(--green); box-shadow: 0 0 8px var(--green); }
     .conn-dot.disconnected { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+    /* CSV Upload styles */
+    .csv-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200;
+      display: flex; align-items: flex-end; opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+    }
+    .csv-overlay.show { opacity: 1; pointer-events: all; }
+    .csv-sheet {
+      background: var(--white); width: 100%; border-radius: 20px 20px 0 0;
+      padding: 12px 20px calc(env(safe-area-inset-bottom,24px) + 20px);
+      transform: translateY(100%); transition: transform .3s cubic-bezier(.34,1.2,.64,1);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .csv-overlay.show .csv-sheet { transform: translateY(0); }
+    .csv-file-input {
+      width: 100%; border: 2px dashed var(--grey-200); border-radius: 12px;
+      padding: 20px; text-align: center; cursor: pointer; margin-bottom: 14px;
+      transition: border-color .15s;
+    }
+    .csv-file-input:hover { border-color: var(--emerald); }
+    .csv-file-input input[type="file"] { display: none; }
+    .csv-file-label { font-size: 15px; font-weight: 600; color: var(--grey-600); }
+    .csv-file-hint { font-size: 13px; color: var(--grey-400); margin-top: 4px; }
+    .csv-progress {
+      width: 100%; height: 8px; background: var(--grey-200); border-radius: 4px;
+      overflow: hidden; margin-bottom: 14px; display: none;
+    }
+    .csv-progress.show { display: block; }
+    .csv-progress-bar {
+      height: 100%; background: var(--emerald); border-radius: 4px;
+      transition: width .3s ease; width: 0%;
+    }
+    .csv-error {
+      background: #FFEEED; border: 1px solid var(--red); color: #C0271F;
+      font-size: 13.5px; padding: 11px 14px; border-radius: 10px; margin-bottom: 14px;
+      display: none; line-height: 1.6;
+    }
+    .csv-error.show { display: block; }
+    .csv-success {
+      background: #E8F8ED; border: 1px solid var(--green); color: #1B7A3A;
+      font-size: 13.5px; padding: 11px 14px; border-radius: 10px; margin-bottom: 14px;
+      display: none; line-height: 1.6;
+    }
+    .csv-success.show { display: block; }
   </style>
 </head>
 <body>
@@ -312,6 +357,7 @@
   <p style="text-align:center; font-size:13px; color:var(--grey-400); margin-top:16px; line-height:1.6;">
     Akaun guru dicipta oleh pentadbir sistem melalui Supabase.<br/>Hubungi pentadbir jika belum ada akaun.
   </p>
+  <button class="btn-link" onclick="openSettings()" style="margin-top: 12px;">⚙️ Tetapan Supabase</button>
 </div>
 
 <!-- ═══ APP UTAMA (selepas log masuk) ═══ -->
@@ -325,6 +371,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
         <span>Install</span>
       </button>
+      <button class="btn-logout" onclick="openSettings()">⚙️ Tetapan</button>
       <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
     </div>
   </div>
@@ -419,8 +466,9 @@
     </div>
   </div>
 
-  <button class="btn-link" id="btn-daftar-murid" onclick="openRegisterMenu()">🪪 Daftar / Semak Kad Murid</button>
-  <button class="btn-hantar" id="btn-hantar" disabled onclick="hantarRekod()">Hantar Rekod</button>
+   <button class="btn-link" id="btn-daftar-murid" onclick="openRegisterMenu()">🪪 Daftar / Semak Kad Murid</button>
+   <button class="btn-link" id="btn-csv-upload" onclick="openCSVUpload()">📤 Muat Naik Murid (CSV)</button>
+   <button class="btn-hantar" id="btn-hantar" disabled onclick="hantarRekod()">Hantar Rekod</button>
 
   <!-- ═══ REKOD TERAKHIR ═══ -->
   <div class="card last-card">
@@ -511,7 +559,107 @@
   </div>
 </div>
 
+<!-- ── OVERLAY: Muat Naik CSV Murid ── -->
+<div class="overlay" id="csv-overlay" onclick="closeCSVOutside(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>📤 Muat Naik Senarai Murid (CSV)</h2>
+    <p style="font-size:13px; color:var(--grey-600); margin-bottom:16px; line-height:1.6;">
+      Muat naik fail CSV yang mengandungi <strong>nama murid sahaja</strong> (satu nama setiap baris).<br/>
+      Selepas muat naik, anda akan mendaftarkan setiap murid satu per satu.
+    </p>
+
+    <!-- Langkah 1: Upload CSV -->
+    <div id="csv-step-upload">
+      <div class="csv-file-input" onclick="document.getElementById('csv-file').click()">
+        <input type="file" id="csv-file" accept=".csv,.txt" onchange="handleCSVFile(event)" />
+        <div class="csv-file-label">📁 Klik untuk pilih fail CSV / TXT</div>
+        <div class="csv-file-hint" id="csv-file-name">Tiada fail dipilih</div>
+      </div>
+      <div class="csv-error" id="csv-error"></div>
+      <div class="csv-success" id="csv-success"></div>
+      <div class="csv-progress" id="csv-progress">
+        <div class="csv-progress-bar" id="csv-progress-bar"></div>
+      </div>
+    </div>
+
+    <!-- Langkah 2: Senarai nama + Pendaftaran -->
+    <div id="csv-step-register" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h3 style="font-size: 16px; font-weight: 700; color: var(--grey-900);">Senarai Murid</h3>
+        <span id="csv-register-count" style="font-size: 13px; color: var(--grey-600);"></span>
+      </div>
+
+      <!-- Senarai nama -->
+      <div style="max-height: 200px; overflow-y: auto; border: 1.5px solid var(--grey-200); border-radius: 12px; margin-bottom: 14px;">
+        <div id="csv-name-list"></div>
+      </div>
+
+      <!-- Form daftar untuk nama yang dipilih -->
+      <div id="csv-register-form" style="display: none; background: var(--grey-100); padding: 14px; border-radius: 12px; margin-bottom: 14px;">
+        <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--emerald);">
+          Daftar: <span id="csv-selected-name"></span>
+        </h4>
+        <div class="field">
+          <label>Tingkatan</label>
+          <select id="csv-reg-tingkatan" onchange="onCSVRegTingkatanChange()">
+            <option value="">— Pilih Tingkatan —</option>
+            <option value="1">Tingkatan 1</option>
+            <option value="2">Tingkatan 2</option>
+            <option value="3">Tingkatan 3</option>
+            <option value="4">Tingkatan 4</option>
+            <option value="5">Tingkatan 5</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Surah</label>
+          <select id="csv-reg-surah" disabled>
+            <option value="">— Pilih Tingkatan dahulu —</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Kelas (cth: 1 Bestari)</label>
+          <input id="csv-reg-kelas" type="text" placeholder="Contoh: 1 Bestari" />
+        </div>
+        <div class="field">
+          <label>UID Kad NFC</label>
+          <input id="csv-reg-uid" type="text" placeholder="Taip UID atau scan kad..." />
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button class="btn-save" id="csv-reg-save-btn" onclick="saveCSVRegister()" style="flex: 1;">💾 Simpan</button>
+          <button class="btn-link" onclick="cancelCSVRegister()" style="flex: 1;">Batal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 </div><!-- /app -->
+
+<!-- ── OVERLAY: Tetapan Supabase ── -->
+<div class="overlay" id="settings-overlay" onclick="closeSettingsOutside(event)">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h2>⚙️ Tetapan Supabase</h2>
+    <p style="font-size:13px; color:var(--grey-600); margin-bottom:16px; line-height:1.6;">
+      Masukkan URL dan Anon Key Projek Supabase anda. Data ini disimpan pada peranti ini sahaja.
+    </p>
+    <div class="field">
+      <label>Supabase URL</label>
+      <input id="settings-url" type="url" placeholder="https://xxxxxxxxxxxx.supabase.co" />
+    </div>
+    <div class="field">
+      <label>Supabase Anon Key</label>
+      <input id="settings-key" type="password" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." />
+    </div>
+    <div class="csv-error" id="settings-error"></div>
+    <div class="csv-success" id="settings-success"></div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-save" onclick="saveSettings()" style="flex: 1;">💾 Simpan Tetapan</button>
+      <button class="btn-link" onclick="closeSettings()" style="flex: 1;">Batal</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ════════════════════════════════════════════
@@ -598,11 +746,13 @@ let studentsData = [];
 let supabaseClient = null;
 
 function initSupabase() {
-  if (window.supabase) {
-    supabaseClient = window.supabase.createClient(
-      'https://ozdkphtsipnspiqkppnp.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im96ZGtwaHRzaXBuc3BpcWtwcG5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYzMjgyNTYsImV4cCI6MjEwMTkwNDI1Nn0.LRVQLXY6WcWO_C7glvfejJeGrJCStp2Ge6lRT9eDCpU'
-    );
+  if (!window.supabase) return;
+  const url = localStorage.getItem('supabase_url');
+  const key = localStorage.getItem('supabase_key');
+  if (url && key) {
+    supabaseClient = window.supabase.createClient(url, key);
+  } else if (url || key) {
+    console.warn('Supabase URL atau Key tidak lengkap. Sila buat tetapan.');
   }
 }
 initSupabase();
@@ -1279,6 +1429,282 @@ function openRegisterMenu() {
 // JANGAN guna querySelector('.btn-link') kerana ia akan timpa
 // butang lain.
 // onclick pada #btn-daftar-murid sudah diikat ke openRegisterMenu() di HTML.
+
+// ════════════════════════════════════════════
+// TETAPAN SUPABASE
+// ════════════════════════════════════════════
+function openSettings() {
+  document.getElementById('settings-url').value = localStorage.getItem('supabase_url') || '';
+  document.getElementById('settings-key').value = localStorage.getItem('supabase_key') || '';
+  document.getElementById('settings-error').classList.remove('show');
+  document.getElementById('settings-success').classList.remove('show');
+  document.getElementById('settings-overlay').classList.add('show');
+}
+function closeSettings() {
+  document.getElementById('settings-overlay').classList.remove('show');
+}
+function closeSettingsOutside(e) {
+  if (e.target === document.getElementById('settings-overlay')) closeSettings();
+}
+function saveSettings() {
+  const url = document.getElementById('settings-url').value.trim();
+  const key = document.getElementById('settings-key').value.trim();
+  const errEl = document.getElementById('settings-error');
+  const sucEl = document.getElementById('settings-success');
+
+  if (!url || !key) {
+    errEl.textContent = 'Sila masukkan URL dan Anon Key Supabase.';
+    errEl.classList.add('show');
+    sucEl.classList.remove('show');
+    return;
+  }
+
+  localStorage.setItem('supabase_url', url);
+  localStorage.setItem('supabase_key', key);
+
+  supabaseClient = null;
+  if (window.supabase) {
+    supabaseClient = window.supabase.createClient(url, key);
+  }
+
+  errEl.classList.remove('show');
+  sucEl.textContent = '✅ Tetapan disimpan. Cubaan sambungan baru...';
+  sucEl.classList.add('show');
+
+  testConnection().then((ok) => {
+    if (ok) {
+      sucEl.textContent = '✅ Tetapan disimpan. Sambungan ke Supabase berjaya!';
+      loadStudents();
+    } else {
+      sucEl.textContent = '⚠️ Tetapan disimpan, tetapi sambungan gagal. Semak URL/Key.';
+    }
+  });
+}
+
+// ════════════════════════════════════════════
+// CSV UPLOAD — Nama Murid Sahaja
+// ════════════════════════════════════════════
+let csvNames = [];
+let csvRegisteredNames = [];
+let csvSelectedIndex = -1;
+
+function openCSVUpload() {
+  csvNames = [];
+  csvRegisteredNames = [];
+  csvSelectedIndex = -1;
+  document.getElementById('csv-file').value = '';
+  document.getElementById('csv-file-name').textContent = 'Tiada fail dipilih';
+  document.getElementById('csv-error').classList.remove('show');
+  document.getElementById('csv-success').classList.remove('show');
+  document.getElementById('csv-progress').classList.remove('show');
+  document.getElementById('csv-progress-bar').style.width = '0%';
+  document.getElementById('csv-step-upload').style.display = 'block';
+  document.getElementById('csv-step-register').style.display = 'none';
+  document.getElementById('csv-register-form').style.display = 'none';
+  document.getElementById('csv-overlay').classList.add('show');
+}
+function closeCSVUpload() {
+  document.getElementById('csv-overlay').classList.remove('show');
+}
+function closeCSVOutside(e) {
+  if (e.target === document.getElementById('csv-overlay')) closeCSVUpload();
+}
+
+function handleCSVFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('csv-file-name').textContent = file.name;
+  document.getElementById('csv-error').classList.remove('show');
+  document.getElementById('csv-success').classList.remove('show');
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result;
+    parseNamesCSV(text);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseNamesCSV(text) {
+  const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+  if (lines.length === 0) {
+    showCSVError('Fail CSV kosong.');
+    return;
+  }
+
+  csvNames = [];
+  csvRegisteredNames = [];
+  const errors = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const cols = parseCSVLine(line);
+    const nama = (cols[0] || '').trim();
+    if (!nama) {
+      errors.push(`Baris ${i + 1}: Nama kosong`);
+    } else {
+      csvNames.push(nama);
+    }
+  }
+
+  if (csvNames.length === 0) {
+    showCSVError('Tiada nama yang sah dalam fail.<br/>' + errors.slice(0, 5).join('<br/>'));
+    return;
+  }
+
+  if (errors.length > 0) {
+    showCSVError(`${errors.length} baris diabaikan (nama kosong).<br/>` + errors.slice(0, 5).join('<br/>'));
+  } else {
+    document.getElementById('csv-error').classList.remove('show');
+  }
+
+  showCSVSuccess(`✅ ${csvNames.length} nama berjaya dimuat naik. Sila daftar setiap murid.`);
+  showNameList();
+  document.getElementById('csv-step-upload').style.display = 'none';
+  document.getElementById('csv-step-register').style.display = 'block';
+}
+
+function showNameList() {
+  const listEl = document.getElementById('csv-name-list');
+  listEl.innerHTML = '';
+
+  csvNames.forEach((nama, index) => {
+    const isRegistered = csvRegisteredNames.includes(nama);
+    const div = document.createElement('div');
+    div.style.cssText = 'padding: 10px 14px; border-bottom: 1px solid var(--grey-200); cursor: pointer; display: flex; justify-content: space-between; align-items: center;';
+    div.innerHTML = `
+      <span style="font-size: 14px; font-weight: ${isRegistered ? '400' : '600'}; color: ${isRegistered ? 'var(--grey-400)' : 'var(--grey-900)'}; text-decoration: ${isRegistered ? 'line-through' : 'none'};">
+        ${escapeHTML(nama)}
+      </span>
+      <span style="font-size: 12px; color: ${isRegistered ? 'var(--green)' : 'var(--grey-400)'};">
+        ${isRegistered ? '✅ Berdaftar' : '⏳ Belum'}
+      </span>
+    `;
+    if (!isRegistered) {
+      div.onclick = () => selectNameForRegister(index);
+    }
+    listEl.appendChild(div);
+  });
+
+  document.getElementById('csv-register-count').textContent = `${csvRegisteredNames.length} / ${csvNames.length} berdaftar`;
+}
+
+function selectNameForRegister(index) {
+  csvSelectedIndex = index;
+  const nama = csvNames[index];
+  document.getElementById('csv-selected-name').textContent = nama;
+  document.getElementById('csv-register-form').style.display = 'block';
+  document.getElementById('csv-reg-tingkatan').value = '';
+  document.getElementById('csv-reg-surah').innerHTML = '<option value="">— Pilih Tingkatan dahulu —</option>';
+  document.getElementById('csv-reg-surah').disabled = true;
+  document.getElementById('csv-reg-kelas').value = '';
+  document.getElementById('csv-reg-uid').value = '';
+
+  const btn = document.getElementById('csv-reg-save-btn');
+  btn.disabled = false;
+  btn.textContent = '💾 Simpan';
+}
+
+function onCSVRegTingkatanChange() {
+  const ting = document.getElementById('csv-reg-tingkatan').value;
+  const sel = document.getElementById('csv-reg-surah');
+  sel.innerHTML = '<option value="">— Pilih Surah —</option>';
+  if (ting) {
+    (SURAH_BY_TINGKATAN[ting] || []).forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.value; o.textContent = s.label;
+      sel.appendChild(o);
+    });
+    sel.disabled = false;
+  } else {
+    sel.disabled = true;
+  }
+}
+
+async function saveCSVRegister() {
+  const nama = csvNames[csvSelectedIndex];
+  const ting = document.getElementById('csv-reg-tingkatan').value;
+  const surah = document.getElementById('csv-reg-surah').value;
+  const kelas = document.getElementById('csv-reg-kelas').value.trim();
+  const uid = document.getElementById('csv-reg-uid').value.trim();
+
+  if (!ting) { showCSVError('Sila pilih tingkatan.'); return; }
+  if (!surah) { showCSVError('Sila pilih surah.'); return; }
+  if (!nama) { showCSVError('Nama murid tiada.'); return; }
+  if (!supabaseClient) { showCSVError('Supabase belum dikonfigurasi.'); return; }
+
+  const btn = document.getElementById('csv-reg-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Menyimpan...';
+
+  try {
+    const { data, error } = await supabaseClient.rpc('register_student', {
+      p_nama: nama,
+      p_tingkatan: ting,
+      p_surah: surah,
+      p_kelas: kelas || null,
+      p_nfc_id: uid || null
+    });
+
+    if (error) throw error;
+    const created = Array.isArray(data) ? data[0] : data;
+    if (created) studentsData.push(created);
+
+    csvRegisteredNames.push(nama);
+    document.getElementById('csv-register-form').style.display = 'none';
+    csvSelectedIndex = -1;
+    showNameList();
+    populateLinkMurid();
+    loadLastRecords();
+
+    showCSVSuccess(`✅ ${nama} berjaya didaftarkan!`);
+    showToast(`✅ ${nama} berjaya didaftarkan!`);
+  } catch (err) {
+    console.error(err);
+    showCSVError('Gagal daftar: ' + err.message);
+    showToast('❌ Gagal daftar: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan';
+  }
+}
+
+function cancelCSVRegister() {
+  document.getElementById('csv-register-form').style.display = 'none';
+  csvSelectedIndex = -1;
+}
+
+function showCSVError(msg) {
+  const el = document.getElementById('csv-error');
+  el.innerHTML = msg;
+  el.classList.add('show');
+}
+function showCSVSuccess(msg) {
+  const el = document.getElementById('csv-success');
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  return result;
+}
 
 // ════════════════════════════════════════════
 // INIT

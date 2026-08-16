@@ -57,7 +57,20 @@ begin
 end;
 $$;
 
--- 6. RLS + grants
+-- 6. RPC: register_students_bulk (untuk muat naik CSV)
+create or replace function register_students_bulk(p_students jsonb)
+returns setof hafazan_records language plpgsql security definer as $$
+begin
+  return query insert into hafazan_records (nama_murid, kelas, tingkatan, surah, nfc_id)
+    select nama_murid, kelas, tingkatan, surah, nfc_id
+    from jsonb_to_recordset(p_students) as x(
+      nama_murid text, tingkatan text, surah text, kelas text, nfc_id text
+    )
+    returning *;
+end;
+$$;
+
+-- 7. RLS + grants
 alter table hafazan_records enable row level security;
 
 drop policy if exists "allow_all_authenticated" on hafazan_records;
@@ -74,3 +87,4 @@ grant all on hafazan_records to authenticated, anon;
 grant execute on function register_student(text, text, text, text, text) to authenticated, anon;
 grant execute on function submit_hafazan_record(bigint, text, text, text, integer, integer, text, text) to authenticated, anon;
 grant execute on function link_student_card(bigint, text) to authenticated, anon;
+grant execute on function register_students_bulk(jsonb) to authenticated, anon;
