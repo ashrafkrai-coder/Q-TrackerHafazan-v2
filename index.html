@@ -34,49 +34,48 @@
       display: flex; flex-direction: column;
     }
     header {
-      background: var(--emerald); padding: max(env(safe-area-inset-top), 14px) 20px 16px;
+      background: var(--emerald); padding: max(env(safe-area-inset-top), 10px) 14px 12px;
       position: sticky; top: 0; z-index: 100;
     }
     .header-eyebrow {
-      font-size: 12px; letter-spacing: .08em; text-transform: uppercase;
-      color: var(--gold-light); font-weight: 600; margin-bottom: 2px;
+      display: none;
     }
     .header-top {
       display: flex; align-items: center; justify-content: space-between;
-      gap: 12px; flex-wrap: wrap;
+      gap: 8px; flex-wrap: nowrap;
     }
     .header-title {
-      font-size: clamp(16px, 4.6vw, 20px); font-weight: 700; color: var(--white);
-      letter-spacing: -.3px; display: flex; align-items: center; gap: 8px;
-      min-width: 0; flex: 1;
+      font-size: clamp(14px, 3.8vw, 17px); font-weight: 700; color: var(--white);
+      letter-spacing: -.2px; display: flex; align-items: center; gap: 5px;
+      min-width: 0; flex: 1; line-height: 1.1;
     }
-    .header-title span { font-size: 18px; }
+    .header-title span { font-size: 16px; }
     .scroll-body {
-      flex: 1; padding: 16px 14px calc(env(safe-area-inset-bottom,24px) + 24px);
-      display: flex; flex-direction: column; gap: 14px;
+      flex: 1; padding: 10px 10px calc(env(safe-area-inset-bottom,20px) + 18px);
+      display: flex; flex-direction: column; gap: 10px;
     }
     .card {
-      background: var(--white); border-radius: var(--radius-card);
-      box-shadow: var(--shadow); overflow: hidden;
+      background: var(--white); border-radius: 14px;
+      box-shadow: 0 3px 16px rgba(0,0,0,.06); overflow: hidden;
     }
     .card-header {
-      background: var(--grey-100); padding: 11px 16px; font-size: 12.5px; font-weight: 700;
-      letter-spacing: .06em; text-transform: uppercase; color: var(--grey-600);
+      background: var(--grey-100); padding: 9px 14px; font-size: 11.5px; font-weight: 700;
+      letter-spacing: .05em; text-transform: uppercase; color: var(--grey-600);
       border-bottom: 1px solid var(--grey-200);
     }
     .select-row {
-      display: flex; align-items: center; padding: 0 16px;
-      border-bottom: 1px solid var(--grey-200); min-height: 42px;
+      display: flex; align-items: center; padding: 0 14px;
+      border-bottom: 1px solid var(--grey-200); min-height: 38px;
     }
     .select-row:last-child { border-bottom: none; }
     .select-label {
-      font-size: 15px; font-weight: 500; color: var(--grey-900); flex: 0 0 100px;
+      font-size: 12.5px; font-weight: 600; color: var(--grey-900); flex: 0 0 82px;
     }
     .select-wrap { flex: 1; position: relative; }
     .select-wrap select {
       width: 100%; border: none; outline: none; background: transparent;
-      font-size: 13.5px; color: var(--emerald); font-weight: 600; font-family: inherit;
-      padding: 13px 28px 13px 0; appearance: none; -webkit-appearance: none;
+      font-size: 12.5px; color: var(--emerald); font-weight: 600; font-family: inherit;
+      padding: 11px 26px 11px 0; appearance: none; -webkit-appearance: none;
       cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
     .select-wrap select option { font-size: 11px; }
@@ -103,13 +102,13 @@
       .select-row { min-height: 38px !important; padding: 0 12px !important; }
     }
 
-    .status-card .card-body { padding: 14px 16px; }
-    .status-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+    .status-card .card-body { padding: 12px 14px; }
+    .status-pills { display: flex; gap: 6px; flex-wrap: wrap; }
     .pill {
-      flex: 1; min-width: 72px; min-height: 62px; border: 1.5px solid var(--grey-200);
-      border-radius: 16px; padding: 6px 6px; text-align: center;
+      flex: 1; min-width: 66px; min-height: 50px; border: 1.5px solid var(--grey-200);
+      border-radius: 12px; padding: 3px 3px; text-align: center;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 2px; font-size: 12px; font-weight: 600; color: var(--grey-600); line-height: 1.1;
+      gap: 1px; font-size: 10.5px; font-weight: 600; color: var(--grey-600); line-height: 1.1;
       cursor: pointer; transition: all .18s ease; background: var(--white);
     }
     .pill-ico { font-size: 18px; line-height: 1; }
@@ -119,10 +118,10 @@
     .pill.active-bimbingan { background: #FFEEED; border-color: var(--red); color: #C0271F; }
 
     .nfc-card { text-align: center; }
-    .nfc-card .card-body { padding: 28px 20px; }
+    .nfc-card .card-body { padding: 20px 16px; }
     .nfc-ring {
-      width: 100px; height: 100px; border-radius: 50%; background: var(--grey-100);
-      display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+      width: 88px; height: 88px; border-radius: 50%; background: var(--grey-100);
+      display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;
       position: relative; cursor: pointer; transition: transform .15s ease;
     }
     .nfc-ring:active { transform: scale(.94); }
@@ -140,13 +139,13 @@
       0% { opacity: .5; transform: scale(1); }
       100% { opacity: 0; transform: scale(1.9); }
     }
-    .nfc-label { font-size: 17px; font-weight: 600; color: var(--grey-900); margin-bottom: 4px; }
-    .nfc-sub { font-size: 14px; color: var(--grey-400); }
+    .nfc-label { font-size: 14px; font-weight: 700; color: var(--grey-900); margin-bottom: 3px; }
+    .nfc-sub { font-size: 12.5px; color: var(--grey-400); }
 
     .btn-hantar {
       width: 100%; background: var(--emerald); color: var(--white);
-      font-size: 17px; font-weight: 700; border: none; border-radius: var(--radius-pill);
-      padding: 18px; cursor: pointer; letter-spacing: .02em;
+      font-size: 14px; font-weight: 700; border: none; border-radius: var(--radius-pill);
+      padding: 14px; cursor: pointer; letter-spacing: .01em;
       transition: opacity .15s, transform .1s; margin-top: 4px; font-family: inherit;
     }
     .btn-hantar:active { opacity: .85; transform: scale(.98); }
@@ -219,8 +218,8 @@
     .btn-save:disabled { opacity: .4; cursor: not-allowed; }
     .btn-link {
       display: block; width: 100%; background: var(--grey-100); color: var(--emerald);
-      border: 1px solid var(--grey-200);       border-radius: var(--radius-pill);
-      padding: 13px; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer;
+      border: 1px solid var(--grey-200); border-radius: var(--radius-pill);
+      padding: 11px 12px; font-size: 13.5px; font-weight: 600; font-family: inherit; cursor: pointer;
       text-align: center;
     }
     .btn-link:active { opacity: .8; }
@@ -230,11 +229,11 @@
 
     /* Murid pending daftar state */
     .reg-prompt {
-      margin: 0 14px;
-      background: #FFEEED; border: 1.5px solid var(--red);
-      border-radius: 14px; padding: 14px 16px;
-      font-size: 14px; color: #C0271F; font-weight: 500;
-      display: none; text-align: center; line-height: 1.6;
+      margin: 0 8px;
+      background: #FFEEED; border: 1px solid var(--red);
+      border-radius: 12px; padding: 10px 12px;
+      font-size: 12.5px; color: #C0271F; font-weight: 500;
+      display: none; text-align: center; line-height: 1.5;
     }
     .reg-prompt.show { display: block; }
     .reg-prompt strong { display: block; font-size: 16px; margin-bottom: 4px; }
@@ -250,7 +249,14 @@
       margin: 0 auto 18px;
     }
     #login-screen h1 {
-      text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 4px;
+      text-align: center; font-size: 22px; font-weight: 700; margin-bottom: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap;
+    }
+    .login-version {
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(26, 58, 46, 0.08); color: var(--emerald); border: 1px solid rgba(26, 58, 46, 0.12);
+      border-radius: 999px; font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+      padding: 4px 8px; text-transform: uppercase;
     }
     #login-screen p.login-sub {
       text-align: center; font-size: 14px; color: var(--grey-600); margin-bottom: 28px;
@@ -262,7 +268,7 @@
     #login-error.show { display: block; }
     .btn-logout {
       background: rgba(255,255,255,.15); border: none; border-radius: var(--radius-pill);
-      color: var(--white); font-size: 11px; font-weight: 700; padding: 6px 11px;
+      color: var(--white); font-size: 10.5px; font-weight: 700; padding: 5px 9px;
       cursor: pointer; font-family: inherit; white-space: nowrap;
     }
     .header-right { display: flex; align-items: center; gap: 7px; }
@@ -277,7 +283,7 @@
     .btn-install:disabled { opacity: .65; cursor: wait; }
     .btn-install svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 2.3; fill: none; }
     .guru-badge {
-      font-size: 10.5px; color: rgba(255,255,255,.65); font-weight: 400; margin-top: 8px;
+      font-size: 10px; color: rgba(255,255,255,.7); font-weight: 400; margin-top: 6px;
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex;
       align-items: center; max-width: 100%; letter-spacing: .01em;
     }
@@ -344,7 +350,7 @@
 <!-- ═══ LOGIN SCREEN (guru sahaja) ═══ -->
 <div id="login-screen">
   <div class="login-logo">📖</div>
-  <h1>Q-Tracker Hafazan</h1>
+  <h1>Q-Tracker Hafazan <span class="login-version">v2.0</span></h1>
   <p class="login-sub">Log masuk akaun guru untuk teruskan</p>
   <div id="login-error"></div>
   <div class="field">
@@ -356,8 +362,8 @@
     <input id="login-password" type="password" placeholder="••••••••" autocomplete="current-password" />
   </div>
   <button class="btn-save" id="login-btn" onclick="doLogin()">Log Masuk</button>
-  <p style="text-align:center; font-size:13px; color:var(--grey-400); margin-top:16px; line-height:1.6;">
-    Akaun guru dicipta oleh pentadbir sistem melalui Supabase.<br/>Hubungi pentadbir jika belum ada akaun.
+  <p style="text-align:center; font-size:12.5px; color:var(--grey-500); margin-top:16px; line-height:1.5;">
+    Akaun guru disediakan oleh pentadbir sistem.
   </p>
   <button class="btn-link" onclick="openSettings()" style="margin-top: 12px;">⚙️ Tetapan Supabase</button>
 </div>
@@ -365,15 +371,9 @@
 <!-- ═══ APP UTAMA (selepas log masuk) ═══ -->
 <div id="app-main" style="display:none; flex-direction:column; flex:1;">
 <header>
-  <div class="header-eyebrow">Sistem Pemantauan</div>
   <div class="header-top">
-    <div class="header-title"><span>📖</span> Q-Tracker Hafazan</div>
+    <div class="header-title"><span>📖</span> Q-Tracker Hafazan <span style="font-size: 10px; opacity: 0.9; font-weight: 700; letter-spacing: 0.06em; background: rgba(255,255,255,0.12); padding: 3px 7px; border-radius: 999px;">v2.0</span></div>
     <div class="header-right">
-      <button id="install-app-btn" class="btn-install" type="button" onclick="installApp()" aria-label="Pasang aplikasi Q-Tracker">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
-        <span>Install</span>
-      </button>
-      <button class="btn-logout" onclick="openSettings()">⚙️ Tetapan</button>
       <button class="btn-logout" onclick="doLogout()">Log Keluar</button>
     </div>
   </div>
@@ -442,7 +442,7 @@
 
   <!-- ═══ STATUS BACAAN ═══ -->
   <div class="card status-card">
-    <div class="card-header">Status Bacaan</div>
+    <div class="card-header">Status</div>
     <div class="card-body">
       <div class="status-pills">
         <div class="pill" data-val="lancar" onclick="pilihStatus(this)"><span class="pill-ico">✅</span><span class="pill-txt">Lancar</span></div>
@@ -454,7 +454,7 @@
 
   <!-- ═══ NFC ═══ -->
   <div class="card nfc-card">
-    <div class="card-header">Pengesahan Kad Murid (NFC)</div>
+    <div class="card-header">Kad Murid</div>
     <div class="card-body">
       <div class="nfc-ring" id="nfc-ring" onclick="scanNFC()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -468,13 +468,12 @@
     </div>
   </div>
 
-   <button class="btn-link" id="btn-daftar-murid" onclick="openDaftarMenu()">🪪 Daftar / Semak Kad Murid</button>
-   <button class="btn-link" id="btn-csv-upload" onclick="openCSVUpload()">📤 Muat Naik Murid (CSV)</button>
-   <button class="btn-hantar" id="btn-hantar" disabled onclick="hantarRekod()">Hantar Rekod</button>
+   <button class="btn-link" id="btn-daftar-murid" onclick="openDaftarMenu()">🪪 Daftar Kad</button>
+   <button class="btn-hantar" id="btn-hantar" disabled onclick="hantarRekod()">Hantar</button>
 
   <!-- ═══ REKOD TERAKHIR ═══ -->
   <div class="card last-card">
-    <div class="card-header">Rekod Ayat Terakhir</div>
+    <div class="card-header">Rekod Terakhir</div>
     <div class="card-body" id="last-records">
       <div class="last-empty">Belum ada rekod dimuatkan</div>
     </div>
