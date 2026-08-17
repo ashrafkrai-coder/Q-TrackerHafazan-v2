@@ -1419,6 +1419,12 @@ async function saveRegister() {
   if (!uid) { showToast('\u26A0\uFE0F Sila scan atau taip UID kad'); return; }
   if (!supabaseClient) { showToast('\u274C Supabase belum dikonfigurasi'); return; }
 
+  const duplicateLocal = (uploadedStudents[ting] || []).some(s => s.nama.toLowerCase() === nama.toLowerCase());
+  if (duplicateLocal) {
+    showToast('⚠️ Nama murid ini sudah ada dalam senarai tingkatan ini.');
+    return;
+  }
+
   const btn = document.getElementById('reg-save-btn');
   btn.disabled = true; btn.textContent = 'Menyimpan...';
 
@@ -1433,8 +1439,22 @@ async function saveRegister() {
 
     if (error) throw error;
     const created = Array.isArray(data) ? data[0] : data;
-    if (created) studentsData.push(created);
+    if (created) {
+      studentsData.push(created);
+      if (!uploadedStudents[ting]) uploadedStudents[ting] = [];
+      const hasSameName = uploadedStudents[ting].some(s => s.nama.toLowerCase() === (created.nama_murid || nama).toLowerCase());
+      if (!hasSameName) {
+        uploadedStudents[ting].push({
+          nama: created.nama_murid || nama,
+          kelas: created.kelas || kelas || '',
+          surah: created.surah || surah,
+          nfc_id: created.nfc_id || uid
+        });
+        saveUploadedStudents();
+      }
+    }
     populateLinkMurid();
+    populateMuridFromUploaded(ting);
     document.getElementById('reg-overlay').classList.remove('show');
     showToast(`\u2705 Murid ${nama} berjaya didaftarkan!`);
     loadLastRecords();
@@ -1984,9 +2004,48 @@ create table if not exists hafazan_records (
 create or replace function register_student(p_nama text, p_tingkatan text, p_surah text, p_kelas text, p_nfc_id text)
 returns table (id bigint, nama_murid text, kelas text, tingkatan text, surah text, nfc_id text, peratus numeric, bintang integer, lulus_block integer)
 language plpgsql security definer as $$
+declare
+  v_nama text := trim(p_nama);
+  v_tingkatan text := trim(p_tingkatan);
+  v_surah text := trim(p_surah);
+  v_kelas text := nullif(trim(p_kelas), '');
+  v_nfc_id text := nullif(trim(p_nfc_id), '');
 begin
+  if v_nama = '' then
+    raise exception 'Nama murid tidak boleh kosong';
+  end if;
+
+  if v_tingkatan = '' then
+    raise exception 'Tingkatan tidak boleh kosong';
+  end if;
+
+  if v_surah = '' then
+    raise exception 'Surah tidak boleh kosong';
+  end if;
+
+  if v_nfc_id is null then
+    raise exception 'UID kad NFC tidak boleh kosong';
+  end if;
+
+  if exists (
+    select 1
+    from hafazan_records
+    where lower(trim(nama_murid)) = lower(v_nama)
+      and lower(trim(tingkatan)) = lower(v_tingkatan)
+  ) then
+    raise exception 'Nama murid sudah wujud dalam tingkatan ini';
+  end if;
+
+  if exists (
+    select 1
+    from hafazan_records
+    where nfc_id = v_nfc_id
+  ) then
+    raise exception 'UID kad sudah didaftarkan kepada murid lain';
+  end if;
+
   return query insert into hafazan_records (nama_murid, kelas, tingkatan, surah, nfc_id)
-    values (p_nama, p_kelas, p_tingkatan, p_surah, p_nfc_id)
+    values (v_nama, v_kelas, v_tingkatan, v_surah, v_nfc_id)
   returning hafazan_records.id, hafazan_records.nama_murid, hafazan_records.kelas, hafazan_records.tingkatan, hafazan_records.surah, hafazan_records.nfc_id, hafazan_records.peratus, hafazan_records.bintang, hafazan_records.lulus_block;
 end;
 $$;

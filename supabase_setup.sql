@@ -16,18 +16,59 @@ create table if not exists hafazan_records (
 -- 2. Enable realtime (optional; ignore error if already added)
 -- alter publication supabase_realtime add table hafazan_records;
 
--- 3. RPC: register_student
+-- 3. RPC: register_student (dengan validasi pendua dan pengesahan input)
+drop function if exists register_student(text, text, text, text, text) cascade;
 create or replace function register_student(p_nama text, p_tingkatan text, p_surah text, p_kelas text, p_nfc_id text)
 returns table (id bigint, nama_murid text, kelas text, tingkatan text, surah text, nfc_id text, peratus numeric, bintang integer, lulus_block integer)
 language plpgsql security definer as $$
+declare
+  v_nama text := trim(p_nama);
+  v_tingkatan text := trim(p_tingkatan);
+  v_surah text := trim(p_surah);
+  v_kelas text := nullif(trim(p_kelas), '');
+  v_nfc_id text := nullif(trim(p_nfc_id), '');
 begin
+  if v_nama = '' then
+    raise exception 'Nama murid tidak boleh kosong';
+  end if;
+
+  if v_tingkatan = '' then
+    raise exception 'Tingkatan tidak boleh kosong';
+  end if;
+
+  if v_surah = '' then
+    raise exception 'Surah tidak boleh kosong';
+  end if;
+
+  if v_nfc_id is null then
+    raise exception 'UID kad NFC tidak boleh kosong';
+  end if;
+
+  if exists (
+    select 1
+    from hafazan_records
+    where lower(trim(nama_murid)) = lower(v_nama)
+      and lower(trim(tingkatan)) = lower(v_tingkatan)
+  ) then
+    raise exception 'Nama murid sudah wujud dalam tingkatan ini';
+  end if;
+
+  if exists (
+    select 1
+    from hafazan_records
+    where nfc_id = v_nfc_id
+  ) then
+    raise exception 'UID kad sudah didaftarkan kepada murid lain';
+  end if;
+
   return query insert into hafazan_records (nama_murid, kelas, tingkatan, surah, nfc_id)
-    values (p_nama, p_kelas, p_tingkatan, p_surah, p_nfc_id)
+    values (v_nama, v_kelas, v_tingkatan, v_surah, v_nfc_id)
   returning hafazan_records.id, hafazan_records.nama_murid, hafazan_records.kelas, hafazan_records.tingkatan, hafazan_records.surah, hafazan_records.nfc_id, hafazan_records.peratus, hafazan_records.bintang, hafazan_records.lulus_block;
 end;
 $$;
 
 -- 4. RPC: submit_hafazan_record
+drop function if exists submit_hafazan_record(bigint, text, text, text, integer, integer, text, text) cascade;
 create or replace function submit_hafazan_record(
   p_murid_id bigint, p_last_ayat text, p_nfc_id text, p_status text,
   p_block integer, p_total_blocks integer, p_tingkatan text, p_surah text
@@ -50,6 +91,7 @@ end;
 $$;
 
 -- 5. RPC: link_student_card
+drop function if exists link_student_card(bigint, text) cascade;
 create or replace function link_student_card(p_murid_id bigint, p_nfc_id text)
 returns void language plpgsql security definer as $$
 begin
@@ -58,6 +100,7 @@ end;
 $$;
 
 -- 6. RPC: register_students_bulk (untuk muat naik CSV)
+drop function if exists register_students_bulk(jsonb) cascade;
 create or replace function register_students_bulk(p_students jsonb)
 returns setof hafazan_records language plpgsql security definer as $$
 begin
