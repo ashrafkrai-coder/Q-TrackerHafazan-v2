@@ -309,7 +309,9 @@
       transition: border-color .15s;
     }
     .csv-file-input:hover { border-color: var(--emerald); }
-    .csv-file-input input[type="file"] { display: none; }
+    .csv-file-input input[type="file"] {
+      position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden;
+    }
     .csv-file-label { font-size: 15px; font-weight: 600; color: var(--grey-600); }
     .csv-file-hint { font-size: 13px; color: var(--grey-400); margin-top: 4px; }
     .csv-progress {
@@ -466,7 +468,7 @@
     </div>
   </div>
 
-   <button class="btn-link" id="btn-daftar-murid" onclick="openRegisterMenu()">🪪 Daftar / Semak Kad Murid</button>
+   <button class="btn-link" id="btn-daftar-murid" onclick="openDaftarMenu()">🪪 Daftar / Semak Kad Murid</button>
    <button class="btn-link" id="btn-csv-upload" onclick="openCSVUpload()">📤 Muat Naik Murid (CSV)</button>
    <button class="btn-hantar" id="btn-hantar" disabled onclick="hantarRekod()">Hantar Rekod</button>
 
@@ -559,78 +561,70 @@
   </div>
 </div>
 
-<!-- ── OVERLAY: Muat Naik CSV Murid ── -->
-<div class="overlay" id="csv-overlay" onclick="closeCSVOutside(event)">
+<!-- ── OVERLAY: Daftar / Semak Kad Murid ── -->
+<div class="overlay" id="daftar-overlay" onclick="closeDaftarOutside(event)">
   <div class="sheet">
     <div class="sheet-handle"></div>
-    <h2>📤 Muat Naik Senarai Murid (CSV)</h2>
+    <h2>🪪 Daftar / Semak Kad Murid</h2>
     <p style="font-size:13px; color:var(--grey-600); margin-bottom:16px; line-height:1.6;">
-      Muat naik fail CSV yang mengandungi <strong>nama murid sahaja</strong> (satu nama setiap baris).<br/>
-      Selepas muat naik, anda akan mendaftarkan setiap murid satu per satu.
+      Pilih Tingkatan, muat naik senarai nama murid (CSV), kemudian pilih nama dan scan kad NFC untuk daftar.
     </p>
 
-    <!-- Langkah 1: Upload CSV -->
-    <div id="csv-step-upload">
-      <div class="csv-file-input" onclick="document.getElementById('csv-file').click()">
-        <input type="file" id="csv-file" accept=".csv,.txt" onchange="handleCSVFile(event)" />
-        <div class="csv-file-label">📁 Klik untuk pilih fail CSV / TXT</div>
-        <div class="csv-file-hint" id="csv-file-name">Tiada fail dipilih</div>
-      </div>
-      <div class="csv-error" id="csv-error"></div>
-      <div class="csv-success" id="csv-success"></div>
-      <div class="csv-progress" id="csv-progress">
-        <div class="csv-progress-bar" id="csv-progress-bar"></div>
-      </div>
+    <div class="field">
+      <label>Tingkatan</label>
+      <select id="daftar-tingkatan" onchange="onDaftarTingkatanChange()">
+        <option value="">— Pilih Tingkatan —</option>
+        <option value="1">Tingkatan 1</option>
+        <option value="2">Tingkatan 2</option>
+        <option value="3">Tingkatan 3</option>
+        <option value="4">Tingkatan 4</option>
+        <option value="5">Tingkatan 5</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Surah</label>
+      <select id="daftar-surah" disabled>
+        <option value="">— Pilih Tingkatan dahulu —</option>
+      </select>
     </div>
 
-    <!-- Langkah 2: Senarai nama + Pendaftaran -->
-    <div id="csv-step-register" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <h3 style="font-size: 16px; font-weight: 700; color: var(--grey-900);">Senarai Murid</h3>
-        <span id="csv-register-count" style="font-size: 13px; color: var(--grey-600);"></span>
-      </div>
-
-      <!-- Senarai nama -->
-      <div style="max-height: 200px; overflow-y: auto; border: 1.5px solid var(--grey-200); border-radius: 12px; margin-bottom: 14px;">
-        <div id="csv-name-list"></div>
-      </div>
-
-      <!-- Form daftar untuk nama yang dipilih -->
-      <div id="csv-register-form" style="display: none; background: var(--grey-100); padding: 14px; border-radius: 12px; margin-bottom: 14px;">
-        <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--emerald);">
-          Daftar: <span id="csv-selected-name"></span>
-        </h4>
-        <div class="field">
-          <label>Tingkatan</label>
-          <select id="csv-reg-tingkatan" onchange="onCSVRegTingkatanChange()">
-            <option value="">— Pilih Tingkatan —</option>
-            <option value="1">Tingkatan 1</option>
-            <option value="2">Tingkatan 2</option>
-            <option value="3">Tingkatan 3</option>
-            <option value="4">Tingkatan 4</option>
-            <option value="5">Tingkatan 5</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Surah</label>
-          <select id="csv-reg-surah" disabled>
-            <option value="">— Pilih Tingkatan dahulu —</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Kelas (cth: 1 Bestari)</label>
-          <input id="csv-reg-kelas" type="text" placeholder="Contoh: 1 Bestari" />
-        </div>
-        <div class="field">
-          <label>UID Kad NFC</label>
-          <input id="csv-reg-uid" type="text" placeholder="Taip UID atau scan kad..." />
-        </div>
-        <div style="display: flex; gap: 10px;">
-          <button class="btn-save" id="csv-reg-save-btn" onclick="saveCSVRegister()" style="flex: 1;">💾 Simpan</button>
-          <button class="btn-link" onclick="cancelCSVRegister()" style="flex: 1;">Batal</button>
-        </div>
-      </div>
+    <div style="border-top: 1px solid var(--grey-200); margin: 14px 0;"></div>
+    <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">Muat Naik Nama Murid</h3>
+    <div class="csv-file-input" onclick="document.getElementById('daftar-file').click()">
+      <input type="file" id="daftar-file" accept=".csv,.txt" onchange="handleDaftarCSV(event)" />
+      <div class="csv-file-label">📁 Klik untuk pilih fail CSV / TXT</div>
+      <div class="csv-file-hint" id="daftar-file-name">Tiada fail dipilih</div>
     </div>
+    <div class="csv-error" id="daftar-error"></div>
+    <div class="csv-success" id="daftar-success"></div>
+
+    <div style="border-top: 1px solid var(--grey-200); margin: 14px 0;"></div>
+    <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 10px;">Senarai Murid</h3>
+    <div style="max-height: 200px; overflow-y: auto; border: 1.5px solid var(--grey-200); border-radius: 12px; margin-bottom: 14px;">
+      <div id="daftar-name-list"></div>
+    </div>
+
+    <div id="daftar-register-form" style="display: none; background: var(--grey-100); padding: 14px; border-radius: 12px; margin-bottom: 14px;">
+      <h4 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--emerald);">
+        Daftar Kad: <span id="daftar-selected-name"></span>
+      </h4>
+      <div class="nfc-ring" id="daftar-ring" onclick="scanDaftarNFC()" style="margin:0 auto 16px; width:84px; height:84px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 7a9 9 0 0 1 0 10M17 9.5a5 5 0 0 1 0 5M4 7a9 9 0 0 0 0 10M7 9.5a5 5 0 0 0 0 5"/>
+          <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+        </svg>
+      </div>
+      <p class="nfc-label" id="daftar-nfc-label" style="text-align:center; font-size:17px; font-weight:600; color:var(--grey-900); margin-bottom:4px;">Tap untuk Scan NFC</p>
+      <p class="nfc-sub" id="daftar-nfc-sub" style="text-align:center; font-size:14px; color:var(--grey-400); margin-bottom:16px;">Dekatkan kad murid ke telefon</p>
+      <p class="nfc-hint" id="daftar-nfc-hint" style="display:none; text-align:center; font-size:13.5px; color:var(--grey-600); margin-top:8px; font-weight:600;"></p>
+      <div class="field">
+        <label>UID Kad NFC</label>
+        <input id="daftar-uid" type="text" placeholder="Auto dari scan atau taip manual..." />
+      </div>
+      <button class="btn-save" id="daftar-save-btn" onclick="scanDaftarNFC()" style="width: 100%;">📱 Scan Kad untuk Daftar</button>
+    </div>
+
+    <button class="btn-link" onclick="closeDaftarMenu()" style="margin-top: 10px;">Tutup</button>
   </div>
 </div>
 
@@ -670,6 +664,7 @@ const SURAH_BY_TINGKATAN = {
     { value: 'As-Sajdah',  label: 'As-Sajdah (سورة السجدة)',  totalAyat: 30, blocks: 6 },
     { value: 'Al-Insan',   label: 'Al-Insan (سورة الإنسان)',   totalAyat: 31, blocks: 6 },
     { value: "Al-A'la",    label: "Al-A'la (سورة الأعلى)",     totalAyat: 19, blocks: 4 },
+    { value: 'Al-Ghasiyah', label: 'Al-Ghasiyah (سورة الغاشية)', totalAyat: 26, blocks: 5 },
   ],
   '2': [
     { value: 'Al-Waqiah',  label: 'Al-Waqiah (سورة الواقعة)', totalAyat: 96, blocks: 6 },
@@ -701,6 +696,7 @@ function generateAyatOptions(surahValue, tingkatan) {
     'As-Sajdah':  [[1,5],[6,10],[11,15],[16,20],[21,25],[26,30]],
     'Al-Insan':   [[1,5],[6,10],[11,16],[17,22],[23,26],[27,31]],
     "Al-A'la":    [[1,5],[6,10],[11,15],[16,19]],
+    'Al-Ghasiyah': [[1,5],[6,10],[11,15],[16,20],[21,26]],
     // Tingkatan 2
     'Al-Waqiah':  [[1,16],[17,32],[33,48],[49,64],[65,80],[81,96]],
     'Nuh':        [[1,5],[6,10],[11,15],[16,20],[21,25],[26,28]],
@@ -743,6 +739,7 @@ let scanLockMain = false;
 let scanLockReg = false;
 let scanLockLink = false;
 let studentsData = [];
+let uploadedStudents = {}; // { '1': [{nama, kelas, surah, nfc_id}, ...], '2': [...] }
 let supabaseClient = null;
 
 function initSupabase() {
@@ -909,13 +906,40 @@ function onTingkatanChange() {
   // Reset downstream
   resetMuridDropdown();
   resetAyatDropdown();
+  populateMuridFromUploaded(ting);
   checkReady();
 }
 
+function populateMuridFromUploaded(ting) {
+  const sel = document.getElementById('sel-murid');
+  sel.innerHTML = '';
+
+  const names = (ting && uploadedStudents[ting]) ? uploadedStudents[ting] : [];
+  if (names.length > 0) {
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = '— Pilih Nama Murid —';
+    sel.appendChild(placeholder);
+
+    names.forEach((student) => {
+      const match = studentsData.find(s => s.nama_murid === student.nama && s.tingkatan === ting);
+      const o = document.createElement('option');
+      o.value = match ? match.id : 'uploaded-' + student.nama;
+      o.textContent = student.nama + (student.nfc_id ? ' (✓ kad)' : '');
+      sel.appendChild(o);
+    });
+    sel.disabled = false;
+  } else {
+    sel.innerHTML = '<option value="">— Muat naik nama melalui Daftar/Semak —</option>';
+    sel.disabled = true;
+  }
+}
+
 function onSurahChange() {
-  resetMuridDropdown();
   resetAyatDropdown();
-  // If NFC already verified, try to re-resolve
+  if (!document.getElementById('sel-murid').value) {
+    resetMuridDropdown();
+  }
   if (nfcVerified && nfcUID) resolveCard();
   checkReady();
 }
@@ -972,15 +996,15 @@ function nextAllowedBlock(student) {
 function setMuridFromNFC(student) {
   const sel = document.getElementById('sel-murid');
   sel.innerHTML = '';
+  const nama = student.nama_murid || student.nama || '';
   const o = document.createElement('option');
-  o.value = student.id;
-  o.textContent = student.nama_murid.length > 32 ? student.nama_murid.substring(0, 32) + '…' : student.nama_murid;
-  o.dataset.nama = student.nama_murid;
+  o.value = student.id || '';
+  o.textContent = nama.length > 32 ? nama.substring(0, 32) + '…' : nama;
+  o.dataset.nama = nama;
   sel.appendChild(o);
-  sel.value = student.id;
+  sel.value = student.id || '';
   sel.disabled = false;
 
-  // Show hint
   const hint = document.getElementById('nfc-hint');
   const blok = parseInt(student.lulus_block || '0', 10) || 0;
   hint.textContent = `Kad: ${student.nfc_id} | Bintang: ${blok}\u2b55 | ${student.peratus || 0}%`;
@@ -989,6 +1013,8 @@ function setMuridFromNFC(student) {
   document.getElementById('reg-prompt').classList.remove('show');
 
   populateAyatDropdown(student);
+  checkReady();
+}
   checkReady();
 }
 
@@ -1011,7 +1037,7 @@ function checkReady() {
   const ayat = document.getElementById('sel-ayat').value;
   const ting = document.getElementById('sel-tingkatan').value;
   const surah = document.getElementById('sel-surah').value;
-  const ok = muridId && ayat && statusPilih && nfcVerified && ting && surah;
+  const ok = muridId !== '' && ayat && statusPilih && nfcVerified && ting && surah;
   document.getElementById('btn-hantar').disabled = !ok;
 }
 
@@ -1074,9 +1100,10 @@ function resolveCard() {
   const hint = document.getElementById('nfc-hint');
   const ting = document.getElementById('sel-tingkatan').value;
   const surah = document.getElementById('sel-surah').value;
+  const muridSel = document.getElementById('sel-murid');
+  const muridVal = muridSel.value;
 
   if (match) {
-    // Auto-set tingkatan & surah if stored
     if (match.tingkatan && !ting) {
       document.getElementById('sel-tingkatan').value = match.tingkatan;
       onTingkatanChange();
@@ -1087,18 +1114,63 @@ function resolveCard() {
     sub.textContent = `UID: ${nfcUID} · ${match.nama_murid}`;
     setMuridFromNFC(match);
     document.getElementById('reg-prompt').classList.remove('show');
-  } else {
-    // Unknown card
-    const sel = document.getElementById('sel-murid');
-    sel.innerHTML = '<option value="">— Murid tidak dijumpai —</option>';
-    sel.disabled = true;
+  } else if (muridVal && muridVal.startsWith('uploaded-') && ting && uploadedStudents[ting]) {
+    const nama = muridVal.replace('uploaded-', '');
+    const student = uploadedStudents[ting].find(s => s.nama === nama);
+    if (student && !student.nfc_id) {
+      sub.textContent = `UID: ${nfcUID} · ${student.nama} (pendaftaran baharu)`;
+      hint.textContent = `Mendaftarkan kad untuk ${student.nama}...`;
+      hint.className = 'nfc-hint ok';
+      hint.style.display = 'block';
+      document.getElementById('reg-prompt').classList.remove('show');
+      registerCardToUploadedStudent(student, ting, surah, nfcUID);
+      return;
+    }
+    sub.textContent = `UID: ${nfcUID} — Tidak dikenali`;
+    muridSel.innerHTML = '<option value="">— Murid tidak dijumpai —</option>';
+    muridSel.disabled = true;
     hint.textContent = 'Kad ini belum didaftarkan. Sila daftar murid baharu.';
     hint.className = 'nfc-hint warn';
     hint.style.display = 'block';
     document.getElementById('reg-prompt').classList.add('show');
+  } else {
     sub.textContent = `UID: ${nfcUID} — Tidak dikenali`;
+    muridSel.innerHTML = '<option value="">— Murid tidak dijumpai —</option>';
+    muridSel.disabled = true;
+    hint.textContent = 'Kad ini belum didaftarkan. Sila daftar murid baharu.';
+    hint.className = 'nfc-hint warn';
+    hint.style.display = 'block';
+    document.getElementById('reg-prompt').classList.add('show');
     checkReady();
   }
+}
+
+async function registerCardToUploadedStudent(student, ting, surah, nfcUID) {
+  try {
+    const { data, error } = await supabaseClient.rpc('register_student', {
+      p_nama: student.nama,
+      p_tingkatan: ting,
+      p_surah: surah || null,
+      p_kelas: student.kelas || null,
+      p_nfc_id: nfcUID
+    });
+
+    if (error) throw error;
+    const created = Array.isArray(data) ? data[0] : data;
+    if (created) studentsData.push(created);
+
+    student.nfc_id = nfcUID;
+    const match = studentsData.find(s => s.nfc_id === nfcUID);
+    if (match) setMuridFromNFC(match);
+
+    showToast(`✅ Kad berjaya didaftarkan kepada ${student.nama}!`);
+  } catch (err) {
+    console.error(err);
+    showToast('❌ Gagal daftar kad: ' + err.message);
+    document.getElementById('nfc-hint').textContent = 'Gagal daftar: ' + err.message;
+    document.getElementById('nfc-hint').className = 'nfc-hint warn';
+  }
+  checkReady();
 }
 
 function nfcErrorMain(ring, label, sub) {
@@ -1135,11 +1207,16 @@ async function hantarRekod() {
 
   if (!muridId || !ayat || !statusPilih || !nfcVerified || !ting || !surah) return;
 
-  const student = studentsData.find(s => String(s.id) === String(muridId));
+  let student = studentsData.find(s => String(s.id) === String(muridId));
+  if (!student && typeof muridId === 'string' && muridId.startsWith('uploaded-')) {
+    const nama = muridId.replace('uploaded-', '');
+    student = studentsData.find(s => s.nama_murid === nama && s.tingkatan === ting);
+  }
   if (!student) { showToast('\u274C Data murid tidak ditemui'); return; }
 
+  const namaMurid = student.nama_murid || student.nama || '';
   if (student.nfc_id && student.nfc_id !== nfcUID) {
-    showToast('\u26A0\uFE0F UID kad tidak sepadan dengan ' + student.nama_murid);
+    showToast('\u26A0\uFE0F UID kad tidak sepadan dengan ' + namaMurid);
     return;
   }
 
@@ -1417,18 +1494,274 @@ async function saveLinkCard() {
 }
 
 // ════════════════════════════════════════════
-// BUTANG DAFTAR / SEMAK — 2 pilihan
+// BUTANG DAFTAR / SEMAK — Menu Tingkatan + CSV + Kad
 // ════════════════════════════════════════════
-function openRegisterMenu() {
-  const choice = confirm('Daftar MURID BAHARU?\n\n\u2705 OK  \u2192 Daftar murid baharu (isi nama, tingkatan, surah, kad)\n\u274C Batal \u2192 Kaitkan kad ke murid SEDIA ADA');
-  if (choice) openRegister();
-  else openLinkOverlay();
+function openDaftarMenu() {
+  loadUploadedStudents();
+  document.getElementById('daftar-tingkatan').value = document.getElementById('sel-tingkatan').value || '';
+  document.getElementById('daftar-surah').innerHTML = '<option value="">— Pilih Tingkatan dahulu —</option>';
+  document.getElementById('daftar-surah').disabled = true;
+  document.getElementById('daftar-file-name').textContent = 'Tiada fail dipilih';
+  document.getElementById('daftar-error').classList.remove('show');
+  document.getElementById('daftar-success').classList.remove('show');
+  document.getElementById('daftar-name-list').innerHTML = '';
+  document.getElementById('daftar-register-form').style.display = 'none';
+  refreshDaftarNameList();
+  document.getElementById('daftar-overlay').classList.add('show');
+}
+function closeDaftarMenu() {
+  document.getElementById('daftar-overlay').classList.remove('show');
+  const ting = document.getElementById('sel-tingkatan').value;
+  if (ting) populateMuridFromUploaded(ting);
+}
+function closeDaftarOutside(e) {
+  if (e.target === document.getElementById('daftar-overlay')) closeDaftarMenu();
+}
+
+function onDaftarTingkatanChange() {
+  const ting = document.getElementById('daftar-tingkatan').value;
+  const sel = document.getElementById('daftar-surah');
+  sel.innerHTML = '<option value="">— Pilih Surah —</option>';
+  if (ting) {
+    (SURAH_BY_TINGKATAN[ting] || []).forEach(s => {
+      const o = document.createElement('option');
+      o.value = s.value; o.textContent = s.label;
+      sel.appendChild(o);
+    });
+    sel.disabled = false;
+  } else {
+    sel.disabled = true;
+  }
+  refreshDaftarNameList();
+}
+
+function refreshDaftarNameList() {
+  const ting = document.getElementById('daftar-tingkatan').value;
+  const listEl = document.getElementById('daftar-name-list');
+  listEl.innerHTML = '';
+
+  const names = (ting && uploadedStudents[ting]) ? uploadedStudents[ting] : [];
+  if (names.length === 0) {
+    listEl.innerHTML = '<div style="padding: 14px; text-align: center; color: var(--grey-400); font-size: 14px;">Tiada nama. Muat naik fail CSV untuk tambah nama murid.</div>';
+    return;
+  }
+
+  names.forEach((student, index) => {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding: 10px 14px; border-bottom: 1px solid var(--grey-200); cursor: pointer; display: flex; justify-content: space-between; align-items: center;';
+    div.innerHTML = `
+      <span style="font-size: 14px; font-weight: 600; color: var(--grey-900);">${escapeHTML(student.nama)}</span>
+      <span style="font-size: 12px; color: ${student.nfc_id ? 'var(--green)' : 'var(--grey-400)'};">
+        ${student.nfc_id ? '✅ Berdaftar' : '⏳ Belum'}
+      </span>
+    `;
+    if (!student.nfc_id) {
+      div.onclick = () => selectDaftarName(index);
+    }
+    listEl.appendChild(div);
+  });
+}
+
+function selectDaftarName(index) {
+  const ting = document.getElementById('daftar-tingkatan').value;
+  const names = (ting && uploadedStudents[ting]) ? uploadedStudents[ting] : [];
+  const student = names[index];
+  if (!student) return;
+
+  document.getElementById('daftar-selected-name').textContent = student.nama;
+  document.getElementById('daftar-register-form').style.display = 'block';
+  document.getElementById('daftar-uid').value = student.nfc_id || '';
+}
+
+function loadUploadedStudents() {
+  try {
+    const raw = localStorage.getItem('uploaded_students');
+    if (raw) uploadedStudents = JSON.parse(raw);
+  } catch (e) { uploadedStudents = {}; }
+}
+function saveUploadedStudents() {
+  localStorage.setItem('uploaded_students', JSON.stringify(uploadedStudents));
+}
+
+function handleDaftarCSV(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  document.getElementById('daftar-file-name').textContent = file.name;
+  document.getElementById('daftar-error').classList.remove('show');
+  document.getElementById('daftar-success').classList.remove('show');
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const text = e.target.result;
+    parseDaftarCSV(text);
+  };
+  reader.readAsText(file, 'UTF-8');
+}
+
+function parseDaftarCSV(text) {
+  const lines = text.split(/\r?\n|\r/).filter(line => line.trim() !== '');
+  if (lines.length === 0) {
+    showDaftarError('Fail CSV kosong.');
+    return;
+  }
+
+  const ting = document.getElementById('daftar-tingkatan').value;
+  if (!ting) {
+    showDaftarError('Sila pilih Tingkatan terlebih dahulu.');
+    return;
+  }
+
+  if (!uploadedStudents[ting]) uploadedStudents[ting] = [];
+
+  let added = 0;
+  let skipped = 0;
+  const errors = [];
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+
+    const cols = parseCSVLine(line);
+    const nama = (cols[0] || '').trim();
+    const kelas = (cols[1] || '').trim();
+    const surah = (cols[2] || '').trim();
+    const nfc_id = (cols[3] || '').trim();
+
+    if (!nama) {
+      errors.push(`Baris ${i + 1}: Nama kosong`);
+      skipped++;
+      continue;
+    }
+
+    const existing = uploadedStudents[ting].find(s => s.nama === nama);
+    if (existing) {
+      if (kelas) existing.kelas = kelas;
+      if (surah) existing.surah = surah;
+      if (nfc_id) existing.nfc_id = nfc_id;
+    } else {
+      uploadedStudents[ting].push({ nama, kelas, surah, nfc_id: nfc_id || null });
+      added++;
+    }
+  }
+
+  if (added > 0) {
+    showDaftarSuccess(`✅ ${added} nama berjaya dimuat naik untuk Tingkatan ${ting}.`);
+  }
+  if (skipped > 0) {
+    showDaftarError(`${skipped} baris diabaikan.<br/>` + errors.slice(0, 5).join('<br/>'));
+  }
+  if (added === 0 && skipped === 0) {
+    showDaftarError('Tiada nama yang sah dalam fail.');
+  }
+
+  refreshDaftarNameList();
+  saveUploadedStudents();
+}
+
+async function scanDaftarNFC() {
+  const ring = document.getElementById('daftar-ring');
+  const label = document.getElementById('daftar-nfc-label');
+  const sub = document.getElementById('daftar-nfc-sub');
+  const uidInput = document.getElementById('daftar-uid');
+  const selectedName = document.getElementById('daftar-selected-name').textContent;
+
+  if (!selectedName) {
+    showDaftarError('Sila pilih nama murid terlebih dahulu.');
+    return;
+  }
+
+  if ('NDEFReader' in window) {
+    try {
+      ring.className = 'nfc-ring scanning';
+      label.textContent = 'Sedang mengimbas…';
+      sub.textContent = 'Dekatkan kad murid sekarang';
+      const reader = new NDEFReader();
+      await reader.scan();
+      reader.addEventListener('reading', ({ serialNumber }) => {
+        const uid = serialNumber || 'UID-' + Date.now();
+        uidInput.value = uid;
+        daftarNFCSuccess(ring, label, sub, selectedName, uid);
+      });
+      reader.addEventListener('readingerror', () => { daftarNFCError(ring, label, sub); });
+      setTimeout(() => { if (ring.classList.contains('scanning')) daftarNFCError(ring, label, sub); }, 15000);
+    } catch(e) { simulateDaftarNFC(ring, label, sub, selectedName); }
+  } else {
+    simulateDaftarNFC(ring, label, sub, selectedName);
+  }
+}
+
+function simulateDaftarNFC(ring, label, sub, selectedName) {
+  ring.className = 'nfc-ring scanning';
+  label.textContent = 'Sedang mengimbas… (Mod Demo)';
+  sub.textContent = 'NFC tidak disokong browser ini';
+  setTimeout(() => {
+    const uid = 'DEMO-' + Math.random().toString(36).substr(2,8).toUpperCase();
+    document.getElementById('daftar-uid').value = uid;
+    daftarNFCSuccess(ring, label, sub, selectedName, uid);
+  }, 2000);
+}
+
+async function daftarNFCSuccess(ring, label, sub, nama, uid) {
+  ring.className = 'nfc-ring success';
+  ring.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`;
+  label.textContent = 'Kad Disahkan ✓';
+  sub.textContent = 'UID: ' + uid;
+
+  const ting = document.getElementById('daftar-tingkatan').value;
+  const surah = document.getElementById('daftar-surah').value;
+
+  if (!ting) { showDaftarError('Sila pilih Tingkatan.'); return; }
+
+  try {
+    const { data, error } = await supabaseClient.rpc('register_student', {
+      p_nama: nama,
+      p_tingkatan: ting,
+      p_surah: surah || null,
+      p_kelas: null,
+      p_nfc_id: uid
+    });
+
+    if (error) throw error;
+    const created = Array.isArray(data) ? data[0] : data;
+    if (created) studentsData.push(created);
+
+    const names = uploadedStudents[ting] || [];
+    const found = names.find(s => s.nama === nama);
+    if (found) found.nfc_id = uid;
+
+    showDaftarSuccess(`✅ Kad berjaya didaftarkan kepada ${nama}!`);
+    showToast(`✅ Kad ${nama} berjaya didaftarkan!`);
+    document.getElementById('daftar-register-form').style.display = 'none';
+    document.getElementById('daftar-selected-name').textContent = '';
+    refreshDaftarNameList();
+  } catch (err) {
+    console.error(err);
+    showDaftarError('Gagal daftar: ' + err.message);
+    showToast('❌ Gagal daftar kad');
+  }
+}
+
+function daftarNFCError(ring, label, sub) {
+  ring.className = 'nfc-ring';
+  label.textContent = 'Gagal — Cuba Semula';
+  sub.textContent = 'Dekatkan kad murid ke telefon';
+}
+
+function showDaftarError(msg) {
+  const el = document.getElementById('daftar-error');
+  el.innerHTML = msg;
+  el.classList.add('show');
+}
+function showDaftarSuccess(msg) {
+  const el = document.getElementById('daftar-success');
+  el.textContent = msg;
+  el.classList.add('show');
 }
 
 // Ikat hanya butang "Daftar / Semak Kad Murid" dalam app-main —
 // JANGAN guna querySelector('.btn-link') kerana ia akan timpa
 // butang lain.
-// onclick pada #btn-daftar-murid sudah diikat ke openRegisterMenu() di HTML.
+// onclick pada #btn-daftar-murid sudah diikat ke openDaftarMenu() di HTML.
 
 // ════════════════════════════════════════════
 // TETAPAN SUPABASE
@@ -1482,233 +1815,9 @@ function saveSettings() {
 }
 
 // ════════════════════════════════════════════
-// CSV UPLOAD — Nama Murid Sahaja
-// ════════════════════════════════════════════
-let csvNames = [];
-let csvRegisteredNames = [];
-let csvSelectedIndex = -1;
-
-function openCSVUpload() {
-  csvNames = [];
-  csvRegisteredNames = [];
-  csvSelectedIndex = -1;
-  document.getElementById('csv-file').value = '';
-  document.getElementById('csv-file-name').textContent = 'Tiada fail dipilih';
-  document.getElementById('csv-error').classList.remove('show');
-  document.getElementById('csv-success').classList.remove('show');
-  document.getElementById('csv-progress').classList.remove('show');
-  document.getElementById('csv-progress-bar').style.width = '0%';
-  document.getElementById('csv-step-upload').style.display = 'block';
-  document.getElementById('csv-step-register').style.display = 'none';
-  document.getElementById('csv-register-form').style.display = 'none';
-  document.getElementById('csv-overlay').classList.add('show');
-}
-function closeCSVUpload() {
-  document.getElementById('csv-overlay').classList.remove('show');
-}
-function closeCSVOutside(e) {
-  if (e.target === document.getElementById('csv-overlay')) closeCSVUpload();
-}
-
-function handleCSVFile(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  document.getElementById('csv-file-name').textContent = file.name;
-  document.getElementById('csv-error').classList.remove('show');
-  document.getElementById('csv-success').classList.remove('show');
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const text = e.target.result;
-    parseNamesCSV(text);
-  };
-  reader.readAsText(file, 'UTF-8');
-}
-
-function parseNamesCSV(text) {
-  const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
-  if (lines.length === 0) {
-    showCSVError('Fail CSV kosong.');
-    return;
-  }
-
-  csvNames = [];
-  csvRegisteredNames = [];
-  const errors = [];
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) continue;
-
-    const cols = parseCSVLine(line);
-    const nama = (cols[0] || '').trim();
-    if (!nama) {
-      errors.push(`Baris ${i + 1}: Nama kosong`);
-    } else {
-      csvNames.push(nama);
-    }
-  }
-
-  if (csvNames.length === 0) {
-    showCSVError('Tiada nama yang sah dalam fail.<br/>' + errors.slice(0, 5).join('<br/>'));
-    return;
-  }
-
-  if (errors.length > 0) {
-    showCSVError(`${errors.length} baris diabaikan (nama kosong).<br/>` + errors.slice(0, 5).join('<br/>'));
-  } else {
-    document.getElementById('csv-error').classList.remove('show');
-  }
-
-  showCSVSuccess(`✅ ${csvNames.length} nama berjaya dimuat naik. Sila daftar setiap murid.`);
-  showNameList();
-  document.getElementById('csv-step-upload').style.display = 'none';
-  document.getElementById('csv-step-register').style.display = 'block';
-}
-
-function showNameList() {
-  const listEl = document.getElementById('csv-name-list');
-  listEl.innerHTML = '';
-
-  csvNames.forEach((nama, index) => {
-    const isRegistered = csvRegisteredNames.includes(nama);
-    const div = document.createElement('div');
-    div.style.cssText = 'padding: 10px 14px; border-bottom: 1px solid var(--grey-200); cursor: pointer; display: flex; justify-content: space-between; align-items: center;';
-    div.innerHTML = `
-      <span style="font-size: 14px; font-weight: ${isRegistered ? '400' : '600'}; color: ${isRegistered ? 'var(--grey-400)' : 'var(--grey-900)'}; text-decoration: ${isRegistered ? 'line-through' : 'none'};">
-        ${escapeHTML(nama)}
-      </span>
-      <span style="font-size: 12px; color: ${isRegistered ? 'var(--green)' : 'var(--grey-400)'};">
-        ${isRegistered ? '✅ Berdaftar' : '⏳ Belum'}
-      </span>
-    `;
-    if (!isRegistered) {
-      div.onclick = () => selectNameForRegister(index);
-    }
-    listEl.appendChild(div);
-  });
-
-  document.getElementById('csv-register-count').textContent = `${csvRegisteredNames.length} / ${csvNames.length} berdaftar`;
-}
-
-function selectNameForRegister(index) {
-  csvSelectedIndex = index;
-  const nama = csvNames[index];
-  document.getElementById('csv-selected-name').textContent = nama;
-  document.getElementById('csv-register-form').style.display = 'block';
-  document.getElementById('csv-reg-tingkatan').value = '';
-  document.getElementById('csv-reg-surah').innerHTML = '<option value="">— Pilih Tingkatan dahulu —</option>';
-  document.getElementById('csv-reg-surah').disabled = true;
-  document.getElementById('csv-reg-kelas').value = '';
-  document.getElementById('csv-reg-uid').value = '';
-
-  const btn = document.getElementById('csv-reg-save-btn');
-  btn.disabled = false;
-  btn.textContent = '💾 Simpan';
-}
-
-function onCSVRegTingkatanChange() {
-  const ting = document.getElementById('csv-reg-tingkatan').value;
-  const sel = document.getElementById('csv-reg-surah');
-  sel.innerHTML = '<option value="">— Pilih Surah —</option>';
-  if (ting) {
-    (SURAH_BY_TINGKATAN[ting] || []).forEach(s => {
-      const o = document.createElement('option');
-      o.value = s.value; o.textContent = s.label;
-      sel.appendChild(o);
-    });
-    sel.disabled = false;
-  } else {
-    sel.disabled = true;
-  }
-}
-
-async function saveCSVRegister() {
-  const nama = csvNames[csvSelectedIndex];
-  const ting = document.getElementById('csv-reg-tingkatan').value;
-  const surah = document.getElementById('csv-reg-surah').value;
-  const kelas = document.getElementById('csv-reg-kelas').value.trim();
-  const uid = document.getElementById('csv-reg-uid').value.trim();
-
-  if (!ting) { showCSVError('Sila pilih tingkatan.'); return; }
-  if (!surah) { showCSVError('Sila pilih surah.'); return; }
-  if (!nama) { showCSVError('Nama murid tiada.'); return; }
-  if (!supabaseClient) { showCSVError('Supabase belum dikonfigurasi.'); return; }
-
-  const btn = document.getElementById('csv-reg-save-btn');
-  btn.disabled = true;
-  btn.textContent = 'Menyimpan...';
-
-  try {
-    const { data, error } = await supabaseClient.rpc('register_student', {
-      p_nama: nama,
-      p_tingkatan: ting,
-      p_surah: surah,
-      p_kelas: kelas || null,
-      p_nfc_id: uid || null
-    });
-
-    if (error) throw error;
-    const created = Array.isArray(data) ? data[0] : data;
-    if (created) studentsData.push(created);
-
-    csvRegisteredNames.push(nama);
-    document.getElementById('csv-register-form').style.display = 'none';
-    csvSelectedIndex = -1;
-    showNameList();
-    populateLinkMurid();
-    loadLastRecords();
-
-    showCSVSuccess(`✅ ${nama} berjaya didaftarkan!`);
-    showToast(`✅ ${nama} berjaya didaftarkan!`);
-  } catch (err) {
-    console.error(err);
-    showCSVError('Gagal daftar: ' + err.message);
-    showToast('❌ Gagal daftar: ' + err.message);
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '💾 Simpan';
-  }
-}
-
-function cancelCSVRegister() {
-  document.getElementById('csv-register-form').style.display = 'none';
-  csvSelectedIndex = -1;
-}
-
-function showCSVError(msg) {
-  const el = document.getElementById('csv-error');
-  el.innerHTML = msg;
-  el.classList.add('show');
-}
-function showCSVSuccess(msg) {
-  const el = document.getElementById('csv-success');
-  el.textContent = msg;
-  el.classList.add('show');
-}
-
-function parseCSVLine(line) {
-  const result = [];
-  let current = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const char = line[i];
-    if (char === '"') {
-      inQuotes = !inQuotes;
-    } else if (char === ',' && !inQuotes) {
-      result.push(current);
-      current = '';
-    } else {
-      current += char;
-    }
-  }
-  result.push(current);
-  return result;
-}
-
-// ════════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════════
+loadUploadedStudents();
 checkSession();
 
 if (supabaseClient) {
