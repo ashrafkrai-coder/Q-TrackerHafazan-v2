@@ -791,6 +791,18 @@ function onAuthed(user) {
   loadLastRecords();
 }
 
+function updateNetworkStatus() {
+  const dot = document.getElementById('conn-dot');
+  if (!dot) return;
+
+  const online = navigator.onLine;
+  dot.className = 'conn-dot ' + (online ? 'connected' : 'disconnected');
+
+  if (!online) {
+    showToast('⚠️ Mod offline: aplikasi masih boleh digunakan dengan cache sedia ada.');
+  }
+}
+
 async function testConnection() {
   const dot = document.getElementById('conn-dot');
   if (!supabaseClient) {
@@ -809,6 +821,16 @@ async function testConnection() {
     return false;
   }
 }
+
+window.addEventListener('online', () => {
+  updateNetworkStatus();
+  showToast('✅ Sambungan internet pulih.');
+});
+
+window.addEventListener('offline', () => {
+  updateNetworkStatus();
+  showToast('⚠️ Mod offline: data live tidak boleh dikemas kini buat masa ini.');
+});
 
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
@@ -1018,8 +1040,6 @@ function setMuridFromNFC(student) {
   document.getElementById('reg-prompt').classList.remove('show');
 
   populateAyatDropdown(student);
-  checkReady();
-}
   checkReady();
 }
 
@@ -1496,6 +1516,43 @@ async function saveLinkCard() {
   } finally {
     btn.disabled = false; btn.textContent = 'Simpan Pemetaan';
   }
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    const next = line[i + 1];
+
+    if (ch === '"') {
+      if (inQuotes && next === '"') {
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (ch === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += ch;
+    }
+  }
+
+  result.push(current);
+  return result.map(value => value.trim());
+}
+
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 // ════════════════════════════════════════════

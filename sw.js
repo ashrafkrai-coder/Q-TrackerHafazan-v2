@@ -1,7 +1,7 @@
 // Q-Tracker Hafazan NFC — Service Worker
 // Naikkan nombor versi ini setiap kali index.html dikemaskini supaya
 // pengguna dapat versi terbaru dan bukan versi cache lama.
-const CACHE_VERSION = 'qtracker-v9';
+const CACHE_VERSION = 'qtracker-v10';
 const CACHE_FILES = [
   './',
   './index.html',
@@ -50,17 +50,27 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       caches.match(event.request).then((cached) => {
         if (cached) return cached;
-        return fetch(event.request).then((response) => {
-          const clone = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
-          return response;
-        }).catch(() => cached);
+
+        return fetch(event.request)
+          .then((response) => {
+            if (response && response.status === 200) {
+              const clone = response.clone();
+              caches.open(CACHE_VERSION).then((cache) => cache.put(event.request, clone));
+            }
+            return response;
+          })
+          .catch(() => {
+            if (event.request.mode === 'navigate') {
+              return caches.match('./index.html') || caches.match('./');
+            }
+            return caches.match(event.request) || caches.match('./index.html');
+          });
       })
     );
     return;
   }
 
-  // Untuk permintaan luar lain (contoh: CDN supabase-js): network-first, fallback cache.
+  // Untuk permintaan luar lain (contoh: CDN): network-first, fallback cache.
   event.respondWith(
     fetch(event.request)
       .then((response) => {
