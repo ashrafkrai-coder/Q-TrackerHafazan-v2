@@ -760,8 +760,8 @@ initSupabase();
 let currentGuru = null;
 
 async function checkSession() {
-  await testConnection();
-  if (!supabaseClient) { showLoginScreen(); return; }
+  const connected = await testConnection();
+  if (!supabaseClient || !connected) { showLoginScreen(); return; }
   try {
     const { data: { session } } = await supabaseClient.auth.getSession();
     if (session && session.user) {
@@ -843,12 +843,17 @@ async function doLogin() {
     onAuthed(data.user);
   } catch (err) {
     const msg = (err && err.message) || '';
+    const lower = msg.toLowerCase();
     if (/failed to fetch|network|fetch/i.test(msg)) {
       errBox.textContent = 'Gagal sambung ke Supabase. Semak sambungan internet.';
-    } else if (/invalid login|invalid credentials|email/i.test(msg)) {
-      errBox.textContent = 'Emel atau kata laluan tidak sah.';
+    } else if (/not_confirmed|email not confirmed|sahkan emel|confirm/i.test(lower)) {
+      errBox.textContent = 'Emel anda belum disahkan. Sila semak peti masuk (termasuk spam) untuk pautan pengesahan.';
+    } else if (/invalid login|invalid credentials|user_not_found|wrong password|password/i.test(lower)) {
+      errBox.textContent = 'Emel atau kata laliman tidak sah.';
+    } else if (/too_many_requests|rate limit|too many/i.test(lower)) {
+      errBox.textContent = 'Terlalu banyak cubaan. Sila cuba semula dalam beberapa minit.';
     } else {
-      errBox.textContent = msg || 'Log masuk gagal: emel atau kata laluan tidak sah.';
+      errBox.textContent = msg || 'Log masuk gagal. Emel atau kata laliman tidak sah.';
     }
     errBox.classList.add('show');
   } finally {
@@ -1821,8 +1826,14 @@ loadUploadedStudents();
 checkSession();
 
 if (supabaseClient) {
-  supabaseClient.auth.onAuthStateChange((event) => {
-    if (event === 'SIGNED_OUT') showLoginScreen();
+  supabaseClient.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_OUT') {
+      showLoginScreen();
+    } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      if (session && session.user) {
+        onAuthed(session.user);
+      }
+    }
   });
 }
 
